@@ -1,0 +1,57 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r}
+library(BachelorProject)
+```
+
+
+```{r}
+
+rm(list = ls() )
+
+dat = EWI
+
+outcomeOptions <- c("Physical", "Psychological")
+outcomeOptionsPriors <- matrix(c("dnorm", 0, 1), length(outcomeOptions), 3, byrow = TRUE)
+
+a = metaCategorize(dat, c("StudNo", "OutcomeNo"),
+               "Hedges.s.g", "Outcome2",
+               outcomeOptions,
+               BayesMethod = "jags",
+               create.outcomePriors = outcomeOptionsPriors
+               )
+```
+
+```{r}
+rm(list = ls() )
+
+dat2 = CBT
+
+dat2$Outcome2 = as.factor(dat2$Outcome)
+levels(dat2$Outcome2) = c("outcome1", "outcome2", "outcome3", "outcome4", "outcome5")
+
+outcomeOptions2 <- c("outcome1", "outcome2", "outcome3")
+outcomeOptionsPriors2 <- matrix(c("dnorm", 0, 1), length(outcomeOptions2), 3, byrow = TRUE)
+
+a = metaCategorize(dat2, c("StudNo", "OutcomeNo"),
+                   "Hedges.s.g", 
+                   "Outcome2", outcomeOptions2,
+                   BayesMethod = "jags",
+                   create.outcomePriors = outcomeOptionsPriors2
+)
+
+a = getValuableData(dat2, c("StudNo", "OutcomeNo"),
+                    "Hedges.s.g", 
+                    "Outcome2", outcomeOptions2)
+
+```
+
