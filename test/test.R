@@ -2,9 +2,38 @@
 
 dat = EWI
 
+#Preprocessing test
+
+outcomeOptions <- c("Psychological", "Physical")
+
+useful <- getValuableData(dat,
+                        groupingFactorsCols = c("StudNo", "OutcomeNo"),
+                        metaOutcomeCol = "Hedges.s.g",
+                        outcomeOptionCol = "Outcome2",
+                        outcomeOptions = outcomeOptions)
+
+# Write model
+
+outcomesMatrix <- as.matrix(useful@outcomeValues)
+outcomeOptionsMatrix <- as.matrix(useful@outcomeOptionsValuesNumeric)
+upper.group <- nrow(outcomesMatrix)
+lower.group <- data@nLowerGroup
+
+create.outcomePriors = matrix(c("dnorm", 0, 1), length(outcomeOptions), 3, byrow = TRUE)
+create.lambdaPrior = c("dgamma", 0.001, 0.001)
+create.thetaPrior = c("dnorm", 0, 1)
+writeModelFile(createModelFileList(nUpper = upper.group,
+                                   outcomesList = outcomeOptions,
+                                   thetaPrior = create.thetaPrior,
+                                   lambdaPrior = create.lambdaPrior,
+                                   outcomePriors = create.outcomePriors))
+
+#Main test
+
 a = metaCategorize(dataframe = dat,
-                   groupingFactorCols = c("StudNo", "OutcomeNo"),
-                   metaOutcomeCol = "Hedges.s.g", "Outcome2",
+                   groupingFactorsCols = c("StudNo", "OutcomeNo"),
+                   metaOutcomeCol = "Hedges.s.g",
+                   outcomeOptionCol = "Outcome2",
                    outcomeOptions = c("Physical", "Psychological"),
                    BayesMethod = "jags"
                )
@@ -29,12 +58,12 @@ a = getValuableData(dat2, c("StudNo", "OutcomeNo"),
                     "Outcome2", outcomeOptions2)
 
 clean = function(dat = dat2,
-                 GroupingFactorsCols = c("StudNo", "OutcomeNo"),
+                 groupingFactorsCols = c("StudNo", "OutcomeNo"),
                  metaOutcomeCol="Hedges.s.g", outCol = "Outcome2",
                  outcomeOptions = c("outcome1", "outcome2")) {
 
   useful <- dat %>%
-    select_(.dots = GroupingFactorsCols, metaOutcomeCol, outCol) %>%
+    select_(.dots = groupingFactorsCols, metaOutcomeCol, outCol) %>%
     filter_(paste(outCol, " == quote(", outcomeOptions, ")", sep = "", collapse=" || "))
 
   return(useful)

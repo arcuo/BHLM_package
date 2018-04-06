@@ -21,29 +21,32 @@ getValuableData <- function(dataframe,
                             groupingFactorsCols,
                             metaOutcomeCol,
                             outcomeOptionCol,
-                            outcomeOptions) {
+                            outcomeOptions = c()) {
 
   useful <- dataframe %>%
     select(one_of(groupingFactorsCols), !!metaOutcomeCol, !!outcomeOptionCol)
 
-  useful[[outcomeOptionCol]] = as.character(useful[[outcomeOptionCol]])
+  #useful[[outcomeOptionCol]] = as.character(useful[[outcomeOptionCol]])
 
-  useful <- useful[useful[[outcomeOptionCol]] %in% outcomeOptions,]
+  if(!is_empty(outcomeOptions)) {
+    useful <- useful[useful[[outcomeOptionCol]] %in% outcomeOptions,]
+  }
 
+  #Matrix values for JAGS.
   #outcome values in matrix
   outcomeValues <- useful %>%
     select_(.dots = groupingFactorsCols, metaOutcomeCol) %>%
     spread_(groupingFactorsCols[2], metaOutcomeCol) %>%
-    select_(paste("-", GroupingFactorsCols[1], sep = ""))
+    select_(paste("-", groupingFactorsCols[1], sep = ""))
   #outcome options in matrix
   outcomeOptionsValues <- useful %>%
     select_(.dots = groupingFactorsCols, outcomeOptionCol) %>%
     spread_(groupingFactorsCols[2], outcomeOptionCol) %>%
-    select_(paste("-", GroupingFactorsCols[1], sep = ""))
+    select_(paste("-", groupingFactorsCols[1], sep = ""))
   #outcome option numeric in matrix
   outcomeOptionsValuesNumeric <- outcomeOptionsValues %>%
     mutate_all(funs(as.numeric), vars = colnames(.))
-  #n for lower grouping GroupingFactorsCols[2]
+  #n for lower grouping groupingFactorsCols[2]
   nLowerGroup <- outcomeOptionsValuesNumeric %>%
     by_row(function(x) sum(!is.na(x)), .to="n") %>%
     select_("n") %>%
