@@ -1,3 +1,8 @@
+#' @import R2jags
+#' @import dirsetr
+#' @import polspline
+#' @import ggplot2
+
 library(R2jags)
 library(dirsetr)
 library(polspline)

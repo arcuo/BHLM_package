@@ -1,11 +1,12 @@
-# preprocessing
+#' @import dirsetr
+#' @import tidyverse
+#' @import lazyeval
+#' @import purrrlyr
 
 library(dirsetr)
 library(tidyverse)
 library(lazyeval)
 library(purrrlyr)
-
-# You need: Study (factor), observation number (factor), (allaround grouping factors) Meta-analysis outcome (e.g. Hedges G) and outcome options.
 
 setClass(Class="ValuableData",
          representation(
