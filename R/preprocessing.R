@@ -10,10 +10,7 @@ library(purrrlyr)
 setClass(Class="ValuableData",
          representation(
            usedData="data.frame",
-           outcomeValues="data.frame",
-           outcomeOptionsValues="data.frame",
-           outcomeOptionsValuesNumeric="data.frame",
-           nLowerGroup = "integer"
+           start_bounds = "numeric"
          )
 )
 
@@ -23,42 +20,22 @@ getValuableData <- function(dataframe,
                             outcomeOptionCol,
                             outcomeOptions = c()) {
 
-  useful <- dataframe %>%
-    select(one_of(groupingFactorsCols), !!metaOutcomeCol, !!outcomeOptionCol)
+  if(is_empty(outcomeOptions)) {
+    stop("missing outcome options")
+  } else if(is_empty(groupingFactorsCols) || length(groupingFactorsCols) > 2) {
+    stop("missing grouping factors (Studies*Outcomes) or too many factors (currently limited to only 2)")
+  } else {
 
-  #useful[[outcomeOptionCol]] = as.character(useful[[outcomeOptionCol]])
+    useful <- dataframe %>%
+      select(one_of(groupingFactorsCols), outcomes = !!metaOutcomeCol, outcomes_names = !!outcomeOptionCol) %>%
+      .[.[["outcomes_names"]] %in% outcomeOptions,] %>%
+      mutate_at(vars(outcomes_names), funs(outcomes_numeric = as.numeric(.)))
 
-  if(!is_empty(outcomeOptions)) {
-    useful <- useful[useful[[outcomeOptionCol]] %in% outcomeOptions,]
+    start_bounds <- useful[groupingFactorsCols[1]] %>% duplicated() %>% which(x = (. == FALSE)) %>% append(., nrow(useful) + 1)
+
+    return(new("ValuableData",
+               usedData=useful,
+               start_bounds = start_bounds))
+
   }
-
-  #Matrix values for JAGS.
-  #outcome values in matrix
-  outcomeValues <- useful %>%
-    select_(.dots = groupingFactorsCols, metaOutcomeCol) %>%
-    spread_(groupingFactorsCols[2], metaOutcomeCol) %>%
-    select_(paste("-", groupingFactorsCols[1], sep = ""))
-  #outcome options in matrix
-  outcomeOptionsValues <- useful %>%
-    select_(.dots = groupingFactorsCols, outcomeOptionCol) %>%
-    spread_(groupingFactorsCols[2], outcomeOptionCol) %>%
-    select_(paste("-", groupingFactorsCols[1], sep = ""))
-  #outcome option numeric in matrix
-  outcomeOptionsValuesNumeric <- outcomeOptionsValues %>%
-    mutate_all(funs(as.numeric), vars = colnames(.))
-  #n for lower grouping groupingFactorsCols[2]
-  nLowerGroup <- outcomeOptionsValuesNumeric %>%
-    by_row(function(x) sum(!is.na(x)), .to="n") %>%
-    select_("n") %>%
-    unlist(use.names = FALSE)
-
-
-
-  return(new("ValuableData",
-             usedData=useful,
-             outcomeValues=outcomeValues,
-             outcomeOptionsValues=outcomeOptionsValues,
-             outcomeOptionsValuesNumeric=outcomeOptionsValuesNumeric,
-             nLowerGroup = nLowerGroup))
-
 }

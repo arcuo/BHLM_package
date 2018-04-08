@@ -28,6 +28,20 @@ writeModelFile(createModelFileList(nUpper = upper.group,
                                    lambdaPrior = create.lambdaPrior,
                                    outcomePriors = create.outcomePriors))
 
+#JAGS
+
+outcomes = as.vector(useful@usedData$outcomes)
+outcomes_numeric = as.vector(useful@usedData$outcomes_numeric)
+start_bounds = useful@start_bounds
+upper.group = length(start_bounds) - 1
+
+jags.data <- c("outcomes", "outcomes_numeric", "start_bounds", "upper.group")
+resultParameters <- c(c("lambda", "theta"), outcomeOptions)
+
+samples = jags(jags.data, inits = NULL, resultParameters,
+               model.file ="modelFile.txt", n.chains=3, n.iter=10000,
+               n.burnin=1000, n.thin=1, DIC=TRUE)
+
 #Main test
 
 a = metaCategorize(dataframe = dat,
@@ -38,35 +52,3 @@ a = metaCategorize(dataframe = dat,
                    BayesMethod = "jags"
                )
 
-dat2 = CBT
-
-dat2$Outcome2 = as.factor(dat2$Outcome)
-levels(dat2$Outcome2) = c("outcome1", "outcome2", "outcome3", "outcome4", "outcome5")
-
-outcomeOptions2 <- c("outcome1", "outcome2", "outcome3")
-outcomeOptionsPriors2 <- matrix(c("dnorm", 0, 1), length(outcomeOptions2), 3, byrow = TRUE)
-
-a = metaCategorize(dat2, c("StudNo", "OutcomeNo"),
-                   "Hedges.s.g",
-                   "Outcome2", outcomeOptions2,
-                   BayesMethod = "jags",
-                   create.outcomePriors = outcomeOptionsPriors2
-)
-
-a = getValuableData(dat2, c("StudNo", "OutcomeNo"),
-                    "Hedges.s.g",
-                    "Outcome2", outcomeOptions2)
-
-clean = function(dat = dat2,
-                 groupingFactorsCols = c("StudNo", "OutcomeNo"),
-                 metaOutcomeCol="Hedges.s.g", outCol = "Outcome2",
-                 outcomeOptions = c("outcome1", "outcome2")) {
-
-  useful <- dat %>%
-    select_(.dots = groupingFactorsCols, metaOutcomeCol, outCol) %>%
-    filter_(paste(outCol, " == quote(", outcomeOptions, ")", sep = "", collapse=" || "))
-
-  return(useful)
-}
-
-clean()
