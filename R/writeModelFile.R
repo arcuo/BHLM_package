@@ -65,6 +65,24 @@ createModelFileList <- function(nUpper,
             )
   )
 
+unseen_studies_model_string = "model {
+
+#Loop through studies
+
+for(i in 1:length(studies_sig)) {
+
+studies_sig[i] ~ dbern(theta) # Bernoulli
+
+}
+
+#Priors
+
+# alpha and beta specified outside the model.
+
+theta ~ dbeta(alpha, beta)
+
+}"
+
 
 }
 
