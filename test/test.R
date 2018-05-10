@@ -44,11 +44,16 @@ samples = jags(jags.data, inits = NULL, resultParameters,
 
 #Main test
 
-a = metaCategorize(dataframe = dat,
-                   groupingFactorsCols = c("StudNo", "OutcomeNo"),
-                   metaOutcomeCol = "Hedges.s.g",
-                   outcomeOptionCol = "Outcome2",
-                   outcomeOptions = c("Physical", "Psychological"),
-                   BayesMethod = "jags"
-               )
+a = bhlm(dataframe = dat,
+         grouping_factor_cols = c("StudNo", "OutcomeNo"),
+         estimate_col = "Hedges.s.g",
+         outcome_options_col =  "Outcome2",
+         outcome_options = c("Physical", "Psychological"),
+         outcome_priors = "dnorm(0, 1)",
+         lambda_prior = "dgamma(0.001, 0.001)",
+         theta_prior = "dnorm(0,1)",
+         bayes_method = "jags",
+         identifier_col = "Study"
+        )
 
+BF <- dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
