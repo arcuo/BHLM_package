@@ -2,7 +2,7 @@
 
 dat1 = EWI
 dat2 = CBT
-dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4"))
+dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4", "ce" = "5"))
 
 #Preprocessing test
 
@@ -69,28 +69,21 @@ b = bhlm(dataframe = dat2,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
          outcome_options_col =  "Outcome2",
-         outcome_options = c("phi", "rho", "psi", "the"),
+         outcome_options = c("phi", "rho", "psi"),
          outcome_priors = c("dnorm(0, 1)"),
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
+         jags_thin = 19,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
 )
 
 # Plots
 
-jags.prec(b@jags_samples, which.param = c("psi", "phi", "rho", "the"))
-
 ar <-  b@jags_samples$BUGSoutput$sims.array
 
-iter <- seq((b@jags_samples$BUGSoutput$n.burnin+b@jags_samples$BUGSoutput$n.thin),b@jags_samples$BUGSoutput$n.iter,by=b@jags_samples$BUGSoutput$n.thin)
-
-plot(c(b@jags_samples$BUGSoutput$n.burnin,b@jags_samples$BUGSoutput$n.iter))
-for(j in 1:dim(ar)[2]) {
-  lines(iter,ar[,j,i],col=j)
-}
-
+iter <- seq((b@jags_samples$BUGSoutput$n.burnin+ b@jags_samples$BUGSoutput$n.thin),b@jags_samples$BUGSoutput$n.iter,by=b@jags_samples$BUGSoutput$n.thin)
 
 psidata = as.data.frame(list("iter" = iter,
                         "chain1" = ar[, 1, "psi"],
@@ -102,6 +95,8 @@ ggplot(psidata, aes(x = iter, y = sim, color = chain)) + geom_line(alpha = 0.9) 
   scale_color_brewer(palette = "Set1") +
   theme_bw() +
   ggtitle("Psi")
+
+c <- bhlm.traceplot(b)
 
 library(jagsplot)
 

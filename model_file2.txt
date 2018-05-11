@@ -5,12 +5,10 @@ model{
 	phi~dnorm(0, 1)
 	rho~dnorm(0, 1)
 	psi~dnorm(0, 1)
-	the~dnorm(0, 1)
 	
 	outcome_options[1] <- phi
 	outcome_options[2] <- rho
 	outcome_options[3] <- psi
-	outcome_options[4] <- the
 	
 	for (s in 1:upper_group) {
 		

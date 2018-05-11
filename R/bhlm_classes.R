@@ -16,7 +16,8 @@ setClass(Class="bhlm_data",
 setClass(Class="bhlm_object",
          contains = c("bhlm_data"),
          slots = c(
-           jags_samples = "rjags"
+           jags_samples = "rjags",
+           outcome_options = "character"
          )
 )
 

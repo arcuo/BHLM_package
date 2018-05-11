@@ -214,9 +214,10 @@ bhlm <- function(dataframe,
   }
 
   return(new("bhlm_object",
-             used_data = useful@used_data,
-             start_bounds = useful@start_bounds,
-             jags_samples = samples))
+             used_data = data@used_data,
+             start_bounds = data@start_bounds,
+             jags_samples = samples,
+             outcome_options = outcome_options))
 
 }
 
