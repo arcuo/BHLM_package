@@ -1,25 +1,25 @@
-#' @include lm_classes.R
+#' @include bhlm_classes.R
 #'
 #' @import tidyverse
 NULL
 
 # Latent mixture preprocessing ------------------------------------------------
 
-bhlm_preprocessing <- function(dataframe,
+bhlm.preprocessing <- function(dataframe,
                                          grouping_factors_cols,
                                          meta_outcome_col,
                                          outcome_options_col,
                                          outcome_options = c(),
-                                         identifier_col = "") {
+                                         identifier_col = NULL) {
 
   if(purrr::is_empty(outcome_options)) {
-    stop("missing outcome options")
+    stop("missing outcome options", call. = FALSE)
   } else if(purrr::is_empty(grouping_factors_cols) || length(grouping_factors_cols) > 2) {
-    stop("missing grouping factors (Studies*Outcomes) or too many factors " +
-         "(currently limited to only 2)")
+    stop(paste("missing grouping factors (Studies*Outcomes) or too many factors",
+         "(currently limited to only 2)"), call. = FALSE)
   } else {
 
-    if (identifier_col == "") {
+    if (is.null(identifier_col)) {
       useful <- dataframe %>%
       dplyr::select(one_of(grouping_factors_cols),
                     outcomes = !!meta_outcome_col,
@@ -53,16 +53,14 @@ bhlm_preprocessing <- function(dataframe,
 
 # Prior distributions creater -------------------------------------------------
 
-define_prior_dist <- function(dist){
+define.prior.dist <- function(dist){
 
   if (length(dist) > 1) {
-    string <- paste("~", dist[1], "(", sep="")
-    i = 2
-    while(i < length(dist)){
-      string <- paste(string, dist[i], ",", sep="")
-      i = i+1
-    }
-    return(paste(string, dist[length(dist)], ")", sep=""))
+    string <-
+      paste(paste("~", dist[1], "(", sep=""),
+            +       paste(tail(dist, length(dist)-1), collapse = ", "),
+            +       ")", sep = "")
+    return(string)
   } else {
     return(paste("~", dist, sep = ""))
   }
@@ -70,19 +68,19 @@ define_prior_dist <- function(dist){
 
 # Write outcome priors and references -----------------------------------------
 
-bhlm_make_outcomes <- function(outcomes_list, outcome_priors){
+bhlm.make.outcomes <- function(outcomes_list, outcome_priors){
 
   if (class(outcome_priors) == "matrix") {
     priors <- unlist(lapply(seq(1, length(outcomes_list), 1),
                             function(x) paste("\t", outcomes_list[x],
-                                              define_prior_dist(outcome_priors[x,]),
+                                              define.prior.dist(outcome_priors[x,]),
                                               sep="")
                             )
                      )
   } else if (class(outcome_priors) == "character" || class(outcome_priors) == "string" ) {
     priors <- unlist(lapply(seq(1, length(outcomes_list), 1),
                             function(x) paste("\t", outcomes_list[x],
-                                              define_prior_dist(outcome_priors[x]),
+                                              define.prior.dist(outcome_priors[x]),
                                               sep="")
                             )
                      )
@@ -102,20 +100,20 @@ bhlm_make_outcomes <- function(outcomes_list, outcome_priors){
 
 # Create the model file list ----------------------------------------------------
 
-bhlm_create_model_list <- function(outcomes_list,
+bhlm.create.model.list <- function(outcomes_list,
                                              theta_prior,
                                              lambda_prior,
                                              outcome_priors){
 
   return(c("model{",
            "\t",
-           paste("\tlambda", define_prior_dist(lambda_prior), sep = ""),
+           paste("\tlambda", define.prior.dist(lambda_prior), sep = ""),
            "\t",
-           bhlm_make_outcomes(outcomes_list, outcome_priors),
+           bhlm.make.outcomes(outcomes_list, outcome_priors),
            "\t",
            "\tfor (s in 1:upper_group) {",
            "\t\t",
-           paste("\t\ttheta[s]", define_prior_dist(theta_prior), sep = ""),
+           paste("\t\ttheta[s]", define.prior.dist(theta_prior), sep = ""),
            "\t\t",
            "\t\tfor (o in start_bounds[s]:(start_bounds[s+1]-1)) {",
            "\t\t\t",
@@ -133,24 +131,24 @@ bhlm_create_model_list <- function(outcomes_list,
 
 # Write to textfile -----------------------------------------------------------
 
-bhlm_write_model <- function(modelFileList, save = "") {
+bhlm.write.model <- function(model_file_list, path = NULL) {
 
-  if (save == "") {
+  if (is.null(path)) {
 
     tmpFile <- tempfile(pattern = "modelFile", tmpdir = tempdir(),  fileext = ".txt")
     connection <- file(tmpFile)
-    writeLines(modelFileList, connection)
+    writeLines(model_file_list, connection)
     close(connection)
 
     return(tmpFile)
 
   } else {
 
-    connection <- file(save)
-    writeLines(modelFileList, connection)
+    connection <- file(path)
+    writeLines(model_file_list, connection)
     close(connection)
 
-    return(save)
+    return(path)
 
   }
 

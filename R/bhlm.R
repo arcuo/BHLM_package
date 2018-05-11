@@ -1,5 +1,5 @@
-#' @include lm_classes.R
-#' @include lm_helpers.R
+#' @include bhlm_classes.R
+#' @include bhlm_helpers.R
 #'
 #' @import tidyverse
 #' @import R2jags
@@ -56,7 +56,7 @@ NULL
 #'   \code{init} \code{NULL} default, \code{chains},
 #'  \code{iter} iterations per chain, \code{burning} length of burn, \code{thin} thinning rate, and
 #'  \code{DIC} compute deviance, pD and DIC.
-#' @param save_file Input filepath location and name to save the model file as .txt
+#' @param save_model Input filepath location and name to save the model file as .txt
 #'
 #' @examples
 #'
@@ -71,17 +71,23 @@ bhlm <- function(dataframe,
                  outcome_priors,
                  lambda_prior,
                  theta_prior,
-                 identifier_col = "",
+                 identifier_col = NULL,
                  bayes_method = "jags",
                  jags_init = NULL, jags_chains=3, jags_iter = 10000,
-                 jags_burning = 1000, jags_thin = 1, jags_DIC = TRUE,
-                 save_file = "") {
+                 jags_burnin = 1000,
+                 jags_thin = max(1, floor(jags_chains * (jags_iter-jags_burnin) / 1000)),
+                 jags_DIC = TRUE,
+                 save_model = NULL) {
+  if (length(outcome_options) <= 1) {
+    stop(paste("Not enough outcomes, found ", length(outcome_options),
+               ", required at least two.", sep = ""), call. = FALSE)
+  }
 
   if(bayes_method == "jags") {
 
     tryCatch({
 
-    data <- bhlm_preprocessing(dataframe,
+    data <- bhlm.preprocessing(dataframe,
                                grouping_factor_cols,
                                estimate_col,
                                outcome_options_col,
@@ -90,7 +96,7 @@ bhlm <- function(dataframe,
 
     }, error = function(e) {
 
-      stop(paste("Preprocessing:", e))
+      stop(paste("Preprocessing:", e), call. = FALSE)
 
     })
 
@@ -109,7 +115,6 @@ bhlm <- function(dataframe,
     dist_check <- "^[a-zA-Z]+\\(((\\d*\\.)*\\d+,\\s?)*(\\d*\\.)*\\d+\\)"
 
     # Matrix (all outcome prior defined by list c("dist", n, n))
-
     if (class(outcome_priors) == "matrix") {
       if (length(outcome_priors[,1]) != length(outcome_options)) {
         stop(paste("Wrong number of priors, found ",
@@ -118,8 +123,8 @@ bhlm <- function(dataframe,
                    " priors defined.\n  For full outcome prior defined, use: \n",
                    "  matrix(outcome_priors, nrow = length(outcome_options), ",
                    "ncol = 'distribution + max(parameters)', byrow = TRUE)",
-                   sep = "")
-             )
+                   sep = ""),
+             call. = FALSE)
       } else {
         outcome_priors_new <- outcome_priors
       }
@@ -143,7 +148,12 @@ bhlm <- function(dataframe,
           if (!all(grepl(dist_check, outcome_priors))) {
             stop(paste("Error in one of the defined outcome prior distributions.\n  ",
                  paste(outcome_priors, collapse = "\n"),
-                 sep = ""))
+                 sep = ""), call. = FALSE)
+          }
+          if (length(outcome_priors) != length(outcome_options)) {
+            stop(paste("You have defined more than one outcome prior, but not all. Found ",
+                       length(outcome_priors), " priors defined, requires ",
+                       length(outcome_options), ".", sep = ""))
           } else {
             outcome_priors_new <- outcome_priors
           }
@@ -153,7 +163,7 @@ bhlm <- function(dataframe,
         if (!grepl(dist_check, outcome_priors)) {
           stop(paste("Error in the defined outcome prior distribution.\n",
                      outcome_priors,
-                     sep = ""))
+                     sep = ""), call. = FALSE)
         } else {
           warning(paste("Only one outcome prior defined as string, '",
                         outcome_priors,
@@ -167,23 +177,23 @@ bhlm <- function(dataframe,
                  class(outcome_priors),
                  ".\n  oucome_priors has following setups: \n  ",
                  "One prior for all",
-                 sep = ""))
+                 sep = ""), call. = FALSE)
     }
 
 # Create model file -----------------------------------------------------------
 
     tryCatch({
 
-      modelfilepath = bhlm_write_model(
-        bhlm_create_model_list(outcomes_list = outcome_options,
+      modelfilepath = bhlm.write.model(
+        bhlm.create.model.list(outcomes_list = outcome_options,
                                theta_prior = theta_prior,
                                lambda_prior = lambda_prior,
                                outcome_priors = outcome_priors_new),
-        save = save_file)
+        path = save_model)
 
     }, error = function(e) {
 
-      stop(paste("Model creation:", e))
+      stop(paste("Model creation:", e), call. = FALSE)
 
     })
 
@@ -191,17 +201,21 @@ bhlm <- function(dataframe,
 
       samples = R2jags::jags(jags_data, inits = jags_init, result_parameters,
                              model.file = modelfilepath, n.chains=jags_chains, n.iter=jags_iter,
-                             n.burnin=jags_burning, n.thin=jags_thin, DIC=jags_DIC)
+                             n.burnin=jags_burnin, n.thin=jags_thin, DIC=jags_DIC)
 
     }, error = function(e) {
 
-      stop(paste("JAGS:", e))
+      stop(paste("JAGS model sampling: ",
+                 "\n  For Syntax error, consider saving model",
+                 " file by setting a path for 'save_model'.\n  ", e,
+                 sep = ""), call. = FALSE)
 
     })
   }
 
   return(new("bhlm_object",
-             data = data,
+             used_data = useful@used_data,
+             start_bounds = useful@start_bounds,
              jags_samples = samples))
 
 }
