@@ -3,7 +3,11 @@ Title: What the Package Does (one line, title case)
 Version: 0.0.0.9000
 Authors@R: person("Hugh Benjamin", "Zachariae", email = "benjamin.zachariae@gmail.com", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
-Depends: R (>= 3.3.2)
+Depends: R (>= 3.3.2),
+  tidyverse,
+  polspline,
+  R2jags,
+  polspline
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
@@ -19,7 +23,8 @@ Suggests: knitr,
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 Collate: 
-    'lm_classes.R'
-    'lm_helpers.R'
+    'bhlm_classes.R'
+    'bhlm_helpers.R'
     'bhlm.R'
+    'bhlm_plots.R'
     'data_documentation.R'

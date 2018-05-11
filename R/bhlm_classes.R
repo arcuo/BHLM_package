@@ -3,7 +3,7 @@
 #' @slot used_data The updated dataframe of the data, after preprocessing.
 #' @slot start_bounds Starting bounds between studies for the looping through estimates.
 setClass(Class="bhlm_data",
-         representation(
+         slots = c(
            used_data="data.frame",
            start_bounds = "numeric"
          )
@@ -14,8 +14,17 @@ setClass(Class="bhlm_data",
 #' @slot data latent_mixture_data object, including the data used in the latent mixture model.
 #' @slot jags_samples rjags object from R2Jags.
 setClass(Class="bhlm_object",
-         representation(
-           data = "bhlm_data",
+         contains = c("bhlm_data"),
+         slots = c(
            jags_samples = "rjags"
          )
 )
+
+# Summary function
+
+summary.bhlm_object <- function(object, ...) {
+
+  message("No custom summary function yet... default for now.")
+  summary.default(object)
+
+}
