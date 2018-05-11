@@ -1,16 +1,18 @@
 #Testing
 
-dat = EWI
+dat1 = EWI
+dat2 = CBT
+dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4"))
 
 #Preprocessing test
 
-outcomeOptions <- c("Psychological", "Physical")
+outcomeOptions <- c("phi", "rho", "psi", "the")
 
-useful <- getValuableData(dat,
-                        groupingFactorsCols = c("StudNo", "OutcomeNo"),
-                        metaOutcomeCol = "Hedges.s.g",
-                        outcomeOptionCol = "Outcome2",
-                        outcomeOptions = outcomeOptions)
+useful <- bhlm_preprocessing(dat2,
+                        grouping_factors_cols = c("StudNo", "OutcomeNo"),
+                        meta_outcome_col = "Hedges.s.g",
+                        outcome_options_col = "Outcome2",
+                        outcome_options = outcomeOptions)
 
 # Write model
 
@@ -44,16 +46,69 @@ samples = jags(jags.data, inits = NULL, resultParameters,
 
 #Main test
 
-a = bhlm(dataframe = dat,
+## EWI
+
+a = bhlm(dataframe = dat1,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
          outcome_options_col =  "Outcome2",
-         outcome_options = c("Physical", "Psychological"),
-         outcome_priors = "dnorm(0, 1)",
+         outcome_options = c("Physical", "Psychological", "QoL"),
+         outcome_priors = c("dnorm(0, 1)", "dnorm(0, 1.1)"),
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
-         identifier_col = "Study"
+         identifier_col = "Study",
+         save_model = "D:\\Desktop\\bachelors_meta\\model_file.txt"
         )
 
 BF <- dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
+
+## CBT
+
+b = bhlm(dataframe = dat2,
+         grouping_factor_cols = c("StudNo", "OutcomeNo"),
+         estimate_col = "Hedges.s.g",
+         outcome_options_col =  "Outcome2",
+         outcome_options = c("phi", "rho", "psi", "the"),
+         outcome_priors = c("dnorm(0, 1)"),
+         lambda_prior = "dgamma(0.001, 0.001)",
+         theta_prior = "dnorm(0,1)",
+         bayes_method = "jags",
+         identifier_col = "Study",
+         save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
+)
+
+# Plots
+
+jags.prec(b@jags_samples, which.param = c("psi", "phi", "rho", "the"))
+
+ar <-  b@jags_samples$BUGSoutput$sims.array
+
+iter <- seq((b@jags_samples$BUGSoutput$n.burnin+b@jags_samples$BUGSoutput$n.thin),b@jags_samples$BUGSoutput$n.iter,by=b@jags_samples$BUGSoutput$n.thin)
+
+plot(c(b@jags_samples$BUGSoutput$n.burnin,b@jags_samples$BUGSoutput$n.iter))
+for(j in 1:dim(ar)[2]) {
+  lines(iter,ar[,j,i],col=j)
+}
+
+
+psidata = as.data.frame(list("iter" = iter,
+                        "chain1" = ar[, 1, "psi"],
+                        "chain2" = ar[, 2, "psi"],
+                        "chain3" = ar[, 3, "psi"])) %>%
+  gather("chain", "sim", chain1, chain2, chain3)
+
+ggplot(psidata, aes(x = iter, y = sim, color = chain)) + geom_line(alpha = 0.9) +
+  scale_color_brewer(palette = "Set1") +
+  theme_bw() +
+  ggtitle("Psi")
+
+library(jagsplot)
+
+jags.trace(b@jags_samples, which.param = c("psi", "phi", "rho", "the"))
+
+dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$psi))/dnorm(0,0,1)
+dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$phi))/dnorm(0,0,1)
+dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$rho))/dnorm(0,0,1)
+dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$the))/dnorm(0,0,1)
+
