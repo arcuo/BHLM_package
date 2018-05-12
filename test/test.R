@@ -75,7 +75,7 @@ b = bhlm(dataframe = dat2,
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
-         jags_thin = 1,
+         jags_thin = 27,
          jags_chains = 3,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
 )
@@ -83,6 +83,8 @@ b = bhlm(dataframe = dat2,
 # Plots
 
 traceplots <- bhlm.traceplot(b, return_plots = TRUE)
+
+c <- jags.samples(b@jags_samples$model, c("psi", "phi", "rho"), n.iter = 1000)
 
 
 library(jagsplot)

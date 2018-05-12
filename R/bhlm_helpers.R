@@ -156,10 +156,11 @@ bhlm.write.model <- function (model_file_list, path = NULL) {
 
 # Plot helpers ----------------------------------------------------------------
 
-plot.outcome.trace <- function (plotdata, outcome, chains) {
+plot.outcome.trace <- function (plotdata, outcome, chains, thin) {
   ggplot(plotdata, aes_string(x = "iterations", y = outcome, color = "chains")) + geom_line(alpha = 0.9) +
     scale_color_brewer(palette = "Set1") +
-    labs(title = paste(outcome, "\nOutcome trace plot with ", chains, " chains.", sep =""),
+    labs(title = paste(outcome, "\nOutcome trace plot with ", chains, " chains.",
+                       "\nThinning rate: ", thin, sep =""),
          x = "Iterations",
          y = "Simulation estimate",
          color = "Chains") +
