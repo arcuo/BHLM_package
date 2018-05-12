@@ -5,12 +5,12 @@ NULL
 
 # Latent mixture preprocessing ------------------------------------------------
 
-bhlm.preprocessing <- function(dataframe,
-                                         grouping_factors_cols,
-                                         meta_outcome_col,
-                                         outcome_options_col,
-                                         outcome_options = c(),
-                                         identifier_col = NULL) {
+bhlm.preprocessing <- function (dataframe,
+                                grouping_factors_cols,
+                                meta_outcome_col,
+                                outcome_options_col,
+                                outcome_options = c(),
+                                identifier_col = NULL) {
 
   if(purrr::is_empty(outcome_options)) {
     stop("missing outcome options", call. = FALSE)
@@ -53,7 +53,7 @@ bhlm.preprocessing <- function(dataframe,
 
 # Prior distributions creater -------------------------------------------------
 
-define.prior.dist <- function(dist){
+define.prior.dist <- function (dist){
 
   if (length(dist) > 1) {
     string <-
@@ -68,7 +68,7 @@ define.prior.dist <- function(dist){
 
 # Write outcome priors and references -----------------------------------------
 
-bhlm.make.outcomes <- function(outcomes_list, outcome_priors){
+bhlm.make.outcomes <- function (outcomes_list, outcome_priors){
 
   if (class(outcome_priors) == "matrix") {
     priors <- unlist(lapply(seq(1, length(outcomes_list), 1),
@@ -100,10 +100,10 @@ bhlm.make.outcomes <- function(outcomes_list, outcome_priors){
 
 # Create the model file list ----------------------------------------------------
 
-bhlm.create.model.list <- function(outcomes_list,
-                                             theta_prior,
-                                             lambda_prior,
-                                             outcome_priors){
+bhlm.create.model.list <- function (outcomes_list,
+                                    theta_prior,
+                                    lambda_prior,
+                                    outcome_priors){
 
   return(c("model{",
            "\t",
@@ -131,7 +131,7 @@ bhlm.create.model.list <- function(outcomes_list,
 
 # Write to textfile -----------------------------------------------------------
 
-bhlm.write.model <- function(model_file_list, path = NULL) {
+bhlm.write.model <- function (model_file_list, path = NULL) {
 
   if (is.null(path)) {
 
@@ -152,4 +152,16 @@ bhlm.write.model <- function(model_file_list, path = NULL) {
 
   }
 
+}
+
+# Plot helpers ----------------------------------------------------------------
+
+plot.outcome.trace <- function (plotdata, outcome, chains) {
+  ggplot(plotdata, aes_string(x = "iterations", y = outcome, color = "chains")) + geom_line(alpha = 0.9) +
+    scale_color_brewer(palette = "Set1") +
+    labs(title = paste(outcome, "\nOutcome trace plot with ", chains, " chains.", sep =""),
+         x = "Iterations",
+         y = "Simulation estimate",
+         color = "Chains") +
+    theme_bw() + theme(plot.title = element_text(hjust = 0.5))
 }

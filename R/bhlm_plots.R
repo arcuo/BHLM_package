@@ -1,12 +1,24 @@
 #' @include bhlm_classes.R
 #'
-#'
+#' @importFrom groupdata2 group
+
+NULL
 
 #' Show trace plots
 #'
-bhlm.traceplot <- function(bhlm_object, save_plots_to_folder = NULL) {
+#' @description Plot outcomes with object from \code{bhlm}.
+#' @author Hugh Benjamin Zachariae
+#'
+#'
+#' @param bhlm_object Object returned from \code{bhlm}, of class \code{bhlm_object}.
+#' @param return_plots Return ggplot objects in \code{list}.
+#'
+#' @export
+bhlm.traceplot <- function(bhlm_object, return_plots = FALSE) {
 
-  # Create outcome sim objects ------------------------------------------------
+  if (class(bhlm_object) != "bhlm_object") {
+    stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
+  }
 
   bugs_output = bhlm_object@jags_samples$BUGSoutput
 
@@ -15,33 +27,22 @@ bhlm.traceplot <- function(bhlm_object, save_plots_to_folder = NULL) {
                     bugs_output$n.iter,
                     bugs_output$n.thin)
 
-  outcome_sims = lapply(bhlm_object@outcome_options, function(out) {
-    as.data.frame(bugs_output$sims.array[, , out])
+  if (length(iterations) < (length(bugs_output$sims.list$deviance)/bugs_output$n.chains)) {
+    warning("Added iteration n.burnin.", call. = FALSE)
+    iterations <- c(bugs_output$n.burnin, iterations)
+  }
 
-  })
+  outcome_sims <-
+    as.data.frame(bugs_output$sims.matrix[,bhlm_object@outcome_options]) %>%
+    cbind(iterations) %>%
+    group(., bugs_output$n.chains, col_name = "chains")
 
-  return(outcome_sims)
+  plots <- lapply(bhlm_object@outcome_options, plot.outcome.trace, chains = bugs_output$n.chains, plotdata = outcome_sims)
 
+  lapply(plots, print)
 
-  # ---------------------------------------------------------------------------
-  iterations <- seq((bhlm_object@jags_samples$BUGSoutput$n.burnin +
-                       bhlm_object@jags_samples$BUGSoutput$n.thin),
-                    bhlm_object@jags_samples$BUGSoutput$n.iter,
-                    by = bhlm_object@jags_samples$BUGSoutput$n.thin)
-
-
-  psidata = as.data.frame(list("iter" = iter,
-                               "chain1" = ar[, 1, "psi"],
-                               "chain2" = ar[, 2, "psi"],
-                               "chain3" = ar[, 3, "psi"])) %>%
-    gather("chain", "sim", chain1, chain2, chain3)
-
-  ggplot(psidata, aes(x = iter, y = sim, color = chain)) + geom_line(alpha = 0.9) +
-    scale_color_brewer(palette = "Set1") +
-    theme_bw() +
-    ggtitle("Psi")
-
-
-
+  if (return_plots) {
+    return(plots)
+  }
 
 }

@@ -75,28 +75,15 @@ b = bhlm(dataframe = dat2,
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
-         jags_thin = 19,
+         jags_thin = 1,
+         jags_chains = 3,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
 )
 
 # Plots
 
-ar <-  b@jags_samples$BUGSoutput$sims.array
+traceplots <- bhlm.traceplot(b, return_plots = TRUE)
 
-iter <- seq((b@jags_samples$BUGSoutput$n.burnin+ b@jags_samples$BUGSoutput$n.thin),b@jags_samples$BUGSoutput$n.iter,by=b@jags_samples$BUGSoutput$n.thin)
-
-psidata = as.data.frame(list("iter" = iter,
-                        "chain1" = ar[, 1, "psi"],
-                        "chain2" = ar[, 2, "psi"],
-                        "chain3" = ar[, 3, "psi"])) %>%
-  gather("chain", "sim", chain1, chain2, chain3)
-
-ggplot(psidata, aes(x = iter, y = sim, color = chain)) + geom_line(alpha = 0.9) +
-  scale_color_brewer(palette = "Set1") +
-  theme_bw() +
-  ggtitle("Psi")
-
-c <- bhlm.traceplot(b)
 
 library(jagsplot)
 
