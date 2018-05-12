@@ -1,0 +1,45 @@
+---
+title: "Unseen Studies Model"
+author: "Hugh Benjamin Zachariae"
+date: "April 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Josh's model
+
+Multibinomial model
+k = observed studies ~ dbinom(q, N)
+N = Total studies ~ multinom(n, A)
+n = conjugate prior to N ~ dirichlet()
+q = probability for publication <- R + p(1-R)
+R = probability for significant results ~ dbeta(.5, .5)
+rho = rate of unsignificant publications ~ dunif(0,1) (maybe set 0.1, 0.5 and 0.9)
+
+
+Article:
+
+N-k ~ dnbinom(k, q)
+  = number failures it takes until we see k successes (finding a study) with Q probability.
+Q ~ dbeta(0.5, 0.5)
+  = accounting for variability of prob of publication across fields.
+  = R + rho(1-R): Assuming all significant studies are published and some proportion 0 <= rho <= 1 of non-significant studies are published. 
+R
+  = prob of producing significant results.
+Z ~ dbinom(k, r)
+  = r = z/k
+
+
+  
+  
+We need to assume that studies are of roughly the same sample size to have the same R across studies as larger power increases likelihood of significant results.
+
+  
+```{r}
+plot(dnbinom(seq(1,10), 7, 0.5))
+```
+
+
