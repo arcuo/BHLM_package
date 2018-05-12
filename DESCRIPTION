@@ -7,7 +7,7 @@ Depends: R (>= 3.3.2),
   tidyverse,
   polspline,
   R2jags,
-  polspline
+  groupdata2
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true

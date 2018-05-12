@@ -6,9 +6,10 @@
 \usage{
 bhlm(dataframe, grouping_factor_cols, estimate_col, outcome_options_col,
   outcome_options, outcome_priors, lambda_prior, theta_prior,
-  identifier_col = "", bayes_method = "jags", jags_init = NULL,
-  jags_chains = 3, jags_iter = 10000, jags_burning = 1000,
-  jags_thin = 1, jags_DIC = TRUE, save_file = "")
+  identifier_col = NULL, bayes_method = "jags", jags_init = NULL,
+  jags_chains = 3, jags_iter = 10000, jags_burnin = 1000,
+  jags_thin = max(1, floor(jags_chains * (jags_iter - jags_burnin)/1000)),
+  jags_DIC = TRUE, save_model = NULL)
 }
 \arguments{
 \item{dataframe}{A data frame with studies, two grouping factor cols (e.g. studies*outcomes),
@@ -58,7 +59,7 @@ estimates, and optional ID column.}
 
 \item{bayes_method}{Use JAGS or STAN (currently only JAGS is implemented).}
 
-\item{save_file}{Input filepath location and name to save the model file as .txt}
+\item{save_model}{Input filepath location and name to save the model file as .txt}
 
 \item{jags}{Parameters for \code{R2jags::\link[R2jags]{jags}}:
 
