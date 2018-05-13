@@ -53,7 +53,7 @@ a = bhlm(dataframe = dat1,
          estimate_col = "Hedges.s.g",
          outcome_options_col =  "Outcome2",
          outcome_options = c("Physical", "Psychological", "QoL"),
-         outcome_priors = c("dnorm(0, 1)", "dnorm(0, 1.1)"),
+         outcome_priors = c("dnorm(0, 1)"),
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
@@ -61,7 +61,12 @@ a = bhlm(dataframe = dat1,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file.txt"
         )
 
-BF <- dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
+dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
+dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Psychological))/dnorm(0,0,1)
+
+traceplots <- bhlm.traceplot(a, return_plots = TRUE)
+
+suplot(density(a@jags_samples$BUGSoutput$sims.list$Physical))
 
 ## CBT
 

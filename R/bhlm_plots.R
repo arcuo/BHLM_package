@@ -70,10 +70,18 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 #' @param return_plots Return ggplot objects in \code{list}.
 #'
 #' @export
-bhlm.posteriorplot <- function(bhlm_object, return_plots = FALSE) {
+bhlm.posteriorplot <- function(bhlm_object,
+                               return_plots = FALSE,
+                               sample = FALSE,
+                               log.estimation = FALSE,
+                               bayes.factors = TRUE) {
 
   if (class(bhlm_object) != "bhlm_object") {
     stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
+  }
+
+  if (sample) {
+    posteriors <- jags.samples(bhlm_object@jags_samples$model)
   }
 
   bugs_output = bhlm_object@jags_samples$BUGSoutput

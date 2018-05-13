@@ -28,3 +28,4 @@ Collate:
     'bhlm.R'
     'bhlm_plots.R'
     'data_documentation.R'
+    'test_unseenModel.R'
