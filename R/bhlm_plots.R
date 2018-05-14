@@ -28,7 +28,7 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
     outcome_options <- bhlm_object@outcome_options
   }
 
-  bugs_output = bhlm_object@jags_samples$BUGSoutput
+  bugs_output <- bhlm_object@jags_samples$BUGSoutput
 
   iterations <- seq((bugs_output$n.burnin +
                        bugs_output$n.thin),
@@ -71,25 +71,80 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 #'
 #' @export
 bhlm.posteriorplot <- function(bhlm_object,
+                               outcome_priors_data = NULL,
+                               outcome_options = NULL,
                                return_plots = FALSE,
-                               sample = FALSE,
-                               log.estimation = FALSE,
-                               bayes.factors = TRUE) {
+                               log_estimation = FALSE,
+                               bayes_factors = TRUE,
+                               cum_prob = NULL,
+                               iter = 10000) {
 
   if (class(bhlm_object) != "bhlm_object") {
-    stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
+    stop(paste("No bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
   }
 
-  if (sample) {
-    posteriors <- jags.samples(bhlm_object@jags_samples$model)
+  if (is.null(outcome_options)) {
+    outcome_options <- bhlm_object@outcome_options
   }
 
-  bugs_output = bhlm_object@jags_samples$BUGSoutput
+  bugs_output <- bhlm_object@jags_samples$BUGSoutput
 
+  ## Data ---------------------------------------------------------------------
 
+  postprior_data <- as.data.frame(bugs_output$sims.matrix[,outcome_options]) %>%
+    gather("outcome", "sim", factor_key = TRUE) %>%
+    mutate("postprior" = as.factor("post"))
+
+  if (is.null(outcome_priors_data)) {
+    if (bhlm_object@outcome_priors_c[1] == "NULL") {
+      for(i in 1:length(outcome_options)) {
+        postprior_data <- rbind(postprior_data,
+                                sample.prior.dist(bhlm_object@outcome_priors_m[i,], iter))
+      }
+    } else {
+      stop(paste("Automatic prior sampling from character vector is not yet implemented.",
+                 "\n  Create a data.frame with priors for each outcome (columns).",
+                 "\n  Example:",
+                 "\n    data.frame('outcome1' = rnorm(10000, ...), ...)",
+                 "\n  Make sure that outcome names are correct.", sep = ""),
+           call. = FALSE)
+    }
+  } else {
+    if (length(outcome_priors_data) != length(levels(postprior_data$outcome))) {
+      stop(paste("Incorrect number of priors defined. Found ",
+                 length(outcome_priors_data), ", requires ",
+                 length(levels(postprior_data$outcome)),
+                 sep = ""),
+           call. = FALSE)
+    }
+    if (!all(colnames(outcome_priors_data) == outcome_options)) {
+      stop(paste("Incorrect naming of one or more priors. Found \n  ",
+                 colnames(outcome_priors_data),
+                 ", requires ", outcome_options, sep = ""),
+           call. = FALSE)
+    }
+
+    postprior_data <- rbind(postprior_data,
+                            outcome_priors_data %>%
+                              gather("outcome", "sim", factor_key = TRUE) %>%
+                              mutate("postprior" = as.factor("prior"))
+                            )
+  }
+
+  ## Returns ------------------------------------------------------------------
 
   if (return_plots) {
-    return(plots)
+
+    return(lapply(outcome_options, plot.outcome.post, plotdata = postprior_data))
+
+  } else {
+
+    print(ggplot(postprior_data, aes(x = sim, fill = postprior))+
+      geom_density(alpha = 0.5) +
+      labs(y = "Density", x = "Estimate", fill = "Posterior/Prior") +
+      facet_wrap(~outcome, scales = "free_x", ncol=2) +
+      theme_bw())
+
   }
 
 }

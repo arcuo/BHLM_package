@@ -4,7 +4,9 @@
 \alias{bhlm.posteriorplot}
 \title{Show posterior distribution plots for outcomes}
 \usage{
-bhlm.posteriorplot(bhlm_object, return_plots = FALSE)
+bhlm.posteriorplot(bhlm_object, outcome_priors_data, outcome_options = NULL,
+  return_plots = FALSE, log_estimation = FALSE, bayes_factors = TRUE,
+  cum_prob = NULL)
 }
 \arguments{
 \item{bhlm_object}{Object returned from \code{bhlm}, of class \code{bhlm_object}.}

@@ -53,17 +53,37 @@ bhlm.preprocessing <- function (dataframe,
 
 # Prior distributions creater -------------------------------------------------
 
-define.prior.dist <- function (dist){
+define.prior.dist <- function (dist) {
 
   if (length(dist) > 1) {
     string <-
       paste(paste("~", dist[1], "(", sep=""),
-            +       paste(tail(dist, length(dist)-1), collapse = ", "),
-            +       ")", sep = "")
+            paste(tail(dist, length(dist) - 1), collapse = ", "),
+            ")", sep = "")
     return(string)
   } else {
     return(paste("~", dist, sep = ""))
   }
+
+}
+
+sample.prior.dist <- function(dist, iter) {
+
+  if (length(dist) > 1) {
+    d <- data.frame(
+      "temp" = do.call(sub("d", "r", dist[2]),
+                        as.list(c(iter, as.numeric(tail(dist, length(dist)-2))))
+                        )
+      )
+    names(d) = dist[1]
+
+    d <- d %>%
+      gather("outcome", "sim") %>%
+      mutate("postprior" = as.factor("prior"))
+
+    return(d)
+  }
+
 }
 
 # Write outcome priors and references -----------------------------------------
@@ -157,6 +177,7 @@ bhlm.write.model <- function (model_file_list, path = NULL) {
 # Plot helpers ----------------------------------------------------------------
 
 plot.outcome.trace <- function (plotdata, outcome, chains, thin) {
+
   ggplot(plotdata, aes_string(x = "iterations", y = outcome, color = "chains")) + geom_line(alpha = 0.9) +
     scale_color_brewer(palette = "Set1") +
     labs(title = paste(outcome, "\nOutcome trace plot with ", chains, " chains.",
@@ -165,4 +186,15 @@ plot.outcome.trace <- function (plotdata, outcome, chains, thin) {
          y = "Simulation estimate",
          color = "Chains") +
     theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+
+}
+
+plot.outcome.post <- function (plotdata, outcome_name) {
+
+  filter(plotdata, outcome == !!outcome_name) %>%
+    ggplot(aes(x = sim, fill = postprior)) +
+      geom_density(alpha = 0.5) +
+      labs(y = "Density", x = outcome_name, fill = "Posterior/Prior") +
+      theme_bw()
+
 }

@@ -17,7 +17,10 @@ setClass(Class="bhlm_object",
          contains = c("bhlm_data"),
          slots = c(
            jags_samples = "rjags",
-           outcome_options = "character"
+           outcome_options = "character",
+           outcome_priors_c = "character",
+           outcome_priors_m = "matrix",
+           estimate_name = "character"
          )
 )
 

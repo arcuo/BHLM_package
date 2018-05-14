@@ -26,30 +26,33 @@ estimates, and optional ID column.}
 
 \item{outcome_options}{Chosen outcomes. You can choose a subset of outcomes.}
 
-\item{outcome_priors}{Priors for outcomes. Takes data vector, \code{character}, or \code{matrix}.
+\item{outcome_priors}{Priors for outcomes. Takes character vector or \code{matrix}.
 
- Define all outcome priors to one set prior (throws Warning) as \code{character}
+ Define all outcome priors to one distribution set prior (throws Warning) as \code{character}:
 
  \code{"dnorm(0, 1)"}
 
- priors defined as character strings are checked with regex:
+ \emph{Priors defined as character strings are checked with regex:}
 
  \code{grepl("^[a-zA-Z]+\\(((\\d*\\.)*\\d+,\\s?)*(\\d*\\.)*\\d+\\)", .)}
 
  or as data vector
 
- \code{c("dnorm", 0, 1)}
+   \code{c("dnorm", 0, 1)}
 
- Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = TRUE)
+ Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = TRUE
 
  \code{matrix(c("dnorm", 0, 1, "dnorm", 0, 1.1),
  nrow = 'number of outcomes',
  ncol = 'maximum amount of dist parameters',
  byrow = TRUE)}
 
- or as data vector of \code{characters}
+ or as character vector of \code{characters}
 
- \code{c("dnorm(0,1)", "dnorm(0,1.1)")}}
+ \code{c("dnorm(0,1)", "dnorm(0,1.1)")}
+
+ \strong{Notice}: priors set manually, are set in the same order as \code{outcome_options}
+ in character vector or in matrix row order (top to bottom).}
 
 \item{lambda_prior}{Prior for Lambda as \code{character} or data vector.}
 

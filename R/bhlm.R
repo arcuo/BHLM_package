@@ -22,30 +22,33 @@ NULL
 #'  \code{Outcomes : Factor w/ 3 levels "Physical","Psychological",..: 2 2 2 2 2 2 2 2 1 1 ...}
 #'
 #' @param outcome_options Chosen outcomes. You can choose a subset of outcomes.
-#' @param outcome_priors Priors for outcomes. Takes data vector, \code{character}, or \code{matrix}.
+#' @param outcome_priors Priors for outcomes. Takes character vector or \code{matrix}.
 #'
-#'  Define all outcome priors to one set prior (throws Warning) as \code{character}
+#'  Define all outcome priors to one distribution set prior (throws Warning) as \code{character}:
 #'
 #'  \code{"dnorm(0, 1)"}
 #'
-#'  priors defined as character strings are checked with regex:
+#'  \emph{Priors defined as character strings are checked with regex:}
 #'
 #'  \code{grepl("^[a-zA-Z]+\\(((\\d*\\.)*\\d+,\\s?)*(\\d*\\.)*\\d+\\)", .)}
 #'
 #'  or as data vector
 #'
-#'  \code{c("dnorm", 0, 1)}
+#'    \code{c("dnorm", 0, 1)}
 #'
-#'  Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = TRUE)
+#'  Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = TRUE
 #'
 #'  \code{matrix(c("dnorm", 0, 1, "dnorm", 0, 1.1),
 #'  nrow = 'number of outcomes',
 #'  ncol = 'maximum amount of dist parameters',
 #'  byrow = TRUE)}
 #'
-#'  or as data vector of \code{characters}
+#'  or as character vector of \code{characters}
 #'
 #'  \code{c("dnorm(0,1)", "dnorm(0,1.1)")}
+#'
+#'  \strong{Notice}: priors set manually, are set in the same order as \code{outcome_options}
+#'  in character vector or in matrix row order (top to bottom).
 #'
 #' @param lambda_prior Prior for Lambda as \code{character} or data vector.
 #' @param theta_prior Prior for Theta as \code{character} or data vector.
@@ -113,6 +116,8 @@ bhlm <- function(dataframe,
 # Convert outcome priors ------------------------------------------------------
 
     dist_check <- "^[a-zA-Z]+\\(((\\d*\\.)*\\d+,\\s?)*(\\d*\\.)*\\d+\\)"
+    outcome_priors_c <- "NULL"
+    outcome_priors_m <- as.matrix("NULL")
 
     # Matrix (all outcome prior defined by list c("dist", n, n))
     if (class(outcome_priors) == "matrix") {
@@ -127,6 +132,7 @@ bhlm <- function(dataframe,
              call. = FALSE)
       } else {
         outcome_priors_new <- outcome_priors
+        outcome_priors_m <- cbind(outcome_options, outcome_priors_new)
       }
     # c(...) or single string/character
     } else if (class(outcome_priors) == "character" || class(outcome_priors) == "string" ) {
@@ -142,7 +148,8 @@ bhlm <- function(dataframe,
           outcome_priors_new <- matrix(outcome_priors,
                                        length(outcome_options),
                                        ncol = 3, byrow = TRUE)
-        # Else c("dnorm(0, 1), ...) (all outcome priors defined)
+          outcome_priors_m <- cbind(outcome_options, outcome_priors_new)
+        # Else c("dnorm(0, 1)", ...) (all outcome priors defined)
         } else {
           # Check that all prior distributions are well defined
           if (!all(grepl(dist_check, outcome_priors))) {
@@ -156,6 +163,7 @@ bhlm <- function(dataframe,
                        length(outcome_options), ".", sep = ""))
           } else {
             outcome_priors_new <- outcome_priors
+            outcome_priors_c <- paste(outcome_options, outcome_priors_new, sep = "#")
           }
         }
         # Else only one string (all outcomes get same prior.)
@@ -170,6 +178,7 @@ bhlm <- function(dataframe,
                         "'. All outcomes are set to have this prior.",
                         sep = ""))
           outcome_priors_new <- rep(outcome_priors, length(outcome_options))
+          outcome_priors_c <- paste(outcome_options, outcome_priors_new, sep = "#")
         }
       }
     } else {
@@ -217,7 +226,10 @@ bhlm <- function(dataframe,
              used_data = data@used_data,
              start_bounds = data@start_bounds,
              jags_samples = samples,
-             outcome_options = outcome_options))
+             outcome_options = outcome_options,
+             outcome_priors_m = outcome_priors_m,
+             outcome_priors_c = outcome_priors_c,
+             estimate_name = estimate_col))
 
 }
 
