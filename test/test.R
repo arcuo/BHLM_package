@@ -61,10 +61,32 @@ a = bhlm(dataframe = dat1,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file.txt"
         )
 
+phys <- logspline(a@jags_samples$BUGSoutput$sims.list$Physical)
+prior <-logspline(rnorm(10000, 0,1))
+
+u1 <- min(qlogspline(0.01, phys), qlogspline(0.01, prior))
+u2 <- max(qlogspline(0.99, phys), qlogspline(0.99, prior))
+u3 <- 1.1 * u1 - 0.1 * u2
+u4 <- 1.1 * u2 - 0.1 * u1
+
+physdat <- data.frame(x = (0:(100 - 1))/(100 - 1) * (u4 - u3) + u3) %>%
+  mutate(post = dlogspline(x, phys), prior = dlogspline(x, prior)) %>%
+  gather("postprior", "estimation", c(post, prior))
+
+ggplot(physdat, aes(x, estimation, color = postprior)) + geom_line() +
+  geom_segment(aes(x = 0, y = dlogspline(0, prior), yend = dlogspline(0, phys), xend = 0), linetype = "dashed", color = "black") +
+  theme_bw()
+
 dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
 dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Psychological))/dnorm(0,0,1)
 
 traceplots <- bhlm.traceplot(a, return_plots = TRUE)
+
+priors <-  data.frame(Physical = rnorm(10000, 0, 1), Psychological = rnorm(10000, 0, 1), QoL = rnorm(10000, 0, 1))
+postplots <- bhlm.posteriorplot(a, outcome_priors_data = priors)
+
+phys = logspline(a@jags_samples$BUGSoutput$sims.list$Physical)
+plot(phys)
 
 suplot(density(a@jags_samples$BUGSoutput$sims.list$Physical))
 
@@ -135,4 +157,46 @@ dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$phi))/dnorm(0,0,1)
 dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$rho))/dnorm(0,0,1)
 dlogspline(0, logspline(b@jags_samples$BUGSoutput$sims.list$the))/dnorm(0,0,1)
 
+# Standard deviation ----------------------------------------------------------
 
+useful <- bhlm.preprocessing(dat2,
+                             grouping_factors_cols = c("StudNo", "OutcomeNo"),
+                             meta_outcome_col = "Hedges.s.g",
+                             outcome_options_col = "Outcome2",
+                             outcome_options = c("phi", "rho", "psi"),
+                             identifier_col = "SE")
+useful@used_data
+
+
+modelstring <- "model{
+
+  phi~dnorm(0, 1)
+  rho~dnorm(0, 1)
+  psi~dnorm(0, 1)
+
+  outcome_options[1] <- phi
+  outcome_options[2] <- rho
+  outcome_options[3] <- psi
+
+  for (s in 1:upper_group) {
+
+    theta[s]~dnorm(0,1)
+
+    for (o in start_bounds[s]:(start_bounds[s+1]-1)) {
+
+      outcome[s,o] <-  outcome_options[outcomes_numeric[o]]
+      lambda <- 1/(error[o] * error[o])
+      eta[s,o] <- theta[s] + outcome[s,o]
+      outcomes[o] ~ dnorm(eta[s,o],lambda)
+
+    }
+  }
+}"
+
+outcomes = as.vector(data@used_data$outcomes)
+outcomes_numeric = as.vector(data@used_data$outcomes_numeric)
+start_bounds = data@start_bounds
+upper_group = length(start_bounds) - 1
+
+jags_data <- c("outcomes", "outcomes_numeric", "start_bounds", "upper_group")
+result_parameters <- c(c("lambda", "theta"), outcome_options)
