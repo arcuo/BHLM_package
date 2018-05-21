@@ -125,6 +125,7 @@ b2 = bhlm(dataframe = dat2,
          identifier_col = "Study",
          jags_thin = 27,
          jags_chains = 3,
+         field_theta_precision = NULL,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
 )
 
@@ -170,6 +171,9 @@ useful@used_data
 
 modelstring <- "model{
 
+  theta_field~dnorm(0, 1)
+  lambda~dgamma(0.001, 0.001)
+
   phi~dnorm(0, 1)
   rho~dnorm(0, 1)
   psi~dnorm(0, 1)
@@ -180,12 +184,11 @@ modelstring <- "model{
 
   for (s in 1:upper_group) {
 
-    theta[s]~dnorm(0,1)
+    theta[s]~dnorm(theta_field, 1)
 
     for (o in start_bounds[s]:(start_bounds[s+1]-1)) {
 
       outcome[s,o] <-  outcome_options[outcomes_numeric[o]]
-      lambda <- 1/(error[o] * error[o])
       eta[s,o] <- theta[s] + outcome[s,o]
       outcomes[o] ~ dnorm(eta[s,o],lambda)
 
@@ -193,10 +196,14 @@ modelstring <- "model{
   }
 }"
 
-outcomes = as.vector(data@used_data$outcomes)
-outcomes_numeric = as.vector(data@used_data$outcomes_numeric)
-start_bounds = data@start_bounds
+outcomes = as.vector(useful@used_data$outcomes)
+outcomes_numeric = as.vector(useful@used_data$outcomes_numeric)
+start_bounds = useful@start_bounds
 upper_group = length(start_bounds) - 1
 
 jags_data <- c("outcomes", "outcomes_numeric", "start_bounds", "upper_group")
-result_parameters <- c(c("lambda", "theta"), outcome_options)
+result_parameters <- c(c("lambda", "theta", "theta_field"), c("phi", "rho", "psi"))
+
+samples = R2jags::jags(jags_data, inits = NULL, result_parameters,
+                       model.file = textConnection(modelstring), n.chains=3, n.iter=10000,
+                       n.burnin=2000, n.thin=1, DIC=TRUE)

@@ -123,29 +123,57 @@ bhlm.make.outcomes <- function (outcomes_list, outcome_priors){
 bhlm.create.model.list <- function (outcomes_list,
                                     theta_prior,
                                     lambda_prior,
-                                    outcome_priors){
+                                    outcome_priors,
+                                    field_theta){
 
-  return(c("model{",
-           "\t",
-           paste("\tlambda", define.prior.dist(lambda_prior), sep = ""),
-           "\t",
-           bhlm.make.outcomes(outcomes_list, outcome_priors),
-           "\t",
-           "\tfor (s in 1:upper_group) {",
-           "\t\t",
-           paste("\t\ttheta[s]", define.prior.dist(theta_prior), sep = ""),
-           "\t\t",
-           "\t\tfor (o in start_bounds[s]:(start_bounds[s+1]-1)) {",
-           "\t\t\t",
-           "\t\t\toutcome[s,o] <-  outcome_options[outcomes_numeric[o]]",
-           "\t\t\teta[s,o] <- theta[s] + outcome[s,o]",
-           "\t\t\toutcomes[o] ~ dnorm(eta[s,o],lambda)",
-           "\t\t\t",
-           "\t\t}",
-           "\t}",
-           "}"
-          )
-         )
+  if (is.null(field_theta)) {
+
+    return(c("model{",
+             "\t",
+             paste("\tlambda", define.prior.dist(lambda_prior), sep = ""),
+             "\t",
+             bhlm.make.outcomes(outcomes_list, outcome_priors),
+             "\t",
+             "\tfor (s in 1:upper_group) {",
+             "\t\t",
+             paste("\t\ttheta[s]", define.prior.dist(theta_prior), sep = ""),
+             "\t\t",
+             "\t\tfor (o in start_bounds[s]:(start_bounds[s+1]-1)) {",
+             "\t\t\t",
+             "\t\t\toutcome[s,o] <-  outcome_options[outcomes_numeric[o]]",
+             "\t\t\teta[s,o] <- theta[s] + outcome[s,o]",
+             "\t\t\toutcomes[o] ~ dnorm(eta[s,o],lambda)",
+             "\t\t\t",
+             "\t\t}",
+             "\t}",
+             "}"
+    )
+    )
+
+  } else
+
+    return(c("model{",
+             "\t",
+             paste("\tlambda", define.prior.dist(lambda_prior), sep = ""),
+             paste("\ttheta_field", define.prior.dist(theta_prior), sep = ""),
+             "\t",
+             bhlm.make.outcomes(outcomes_list, outcome_priors),
+             "\t",
+             "\tfor (s in 1:upper_group) {",
+             "\t\t",
+             paste("\t\ttheta[s]~dnorm(theta_field,", field_theta, ")", sep = ""),
+             "\t\t",
+             "\t\tfor (o in start_bounds[s]:(start_bounds[s+1]-1)) {",
+             "\t\t\t",
+             "\t\t\toutcome[s,o] <-  outcome_options[outcomes_numeric[o]]",
+             "\t\t\teta[s,o] <- theta[s] + outcome[s,o]",
+             "\t\t\toutcomes[o] ~ dnorm(eta[s,o],lambda)",
+             "\t\t\t",
+             "\t\t}",
+             "\t}",
+             "}"
+            )
+           )
 
   }
 

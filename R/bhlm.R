@@ -80,7 +80,9 @@ bhlm <- function(dataframe,
                  jags_burnin = 1000,
                  jags_thin = max(1, floor(jags_chains * (jags_iter-jags_burnin) / 1000)),
                  jags_DIC = TRUE,
-                 save_model = NULL) {
+                 save_model = NULL,
+                 field_theta_precision = NULL) {
+
   if (length(outcome_options) <= 1) {
     stop(paste("Not enough outcomes, found ", length(outcome_options),
                ", required at least two.", sep = ""), call. = FALSE)
@@ -197,7 +199,8 @@ bhlm <- function(dataframe,
         bhlm.create.model.list(outcomes_list = outcome_options,
                                theta_prior = theta_prior,
                                lambda_prior = lambda_prior,
-                               outcome_priors = outcome_priors_new),
+                               outcome_priors = outcome_priors_new,
+                               field_theta = field_theta_precision),
         path = save_model)
 
     }, error = function(e) {
