@@ -52,6 +52,9 @@ NULL
 #'
 #' @param lambda_prior Prior for Lambda as \code{character} or data vector.
 #' @param theta_prior Prior for Theta as \code{character} or data vector.
+#' @param field_theta Optional: Include a another hierarchical level in the form of a field-wide mean distribution.
+#' Use a string vector with the same distribution as \code{theta_prior} and precision (no mean). The field-wide mean prior,
+#' is set to \code{theta_prior}. This solution is currently a fix-up, and should only be used on a case by case basis.
 #' @param identifier_col ID column. Chosen column is added to the used data for easier overview.
 #' @param bayes_method Use JAGS or STAN (currently only JAGS is implemented).
 #' @param jags Parameters for \code{R2jags::\link[R2jags]{jags}}:
@@ -74,14 +77,15 @@ bhlm <- function(dataframe,
                  outcome_priors,
                  lambda_prior,
                  theta_prior,
+                 field_theta_precision = NULL,
                  identifier_col = NULL,
                  bayes_method = "jags",
                  jags_init = NULL, jags_chains=3, jags_iter = 10000,
                  jags_burnin = 1000,
                  jags_thin = max(1, floor(jags_chains * (jags_iter-jags_burnin) / 1000)),
                  jags_DIC = TRUE,
-                 save_model = NULL,
-                 field_theta_precision = NULL) {
+                 save_model = NULL
+                 ) {
 
   if (length(outcome_options) <= 1) {
     stop(paste("Not enough outcomes, found ", length(outcome_options),

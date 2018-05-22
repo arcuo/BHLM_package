@@ -2,16 +2,32 @@
 % Please edit documentation in R/bhlm_plots.R
 \name{bhlm.posteriorplot}
 \alias{bhlm.posteriorplot}
-\title{Show posterior distribution plots for outcomes}
+\title{Posterior distribution plots for outcomes}
 \usage{
-bhlm.posteriorplot(bhlm_object, outcome_priors_data, outcome_options = NULL,
-  return_plots = FALSE, log_estimation = FALSE, bayes_factors = TRUE,
-  cum_prob = NULL)
+bhlm.posteriorplot(bhlm_object, outcome_priors_data = NULL,
+  outcome_options = NULL, return_plots = FALSE, log_estimation = FALSE,
+  bayes_factors = TRUE, cum_prob = NULL, iter = 10000)
 }
 \arguments{
 \item{bhlm_object}{Object returned from \code{bhlm}, of class \code{bhlm_object}.}
 
+\item{outcome_priors_data}{\code{data.frame} with variables for each outcome (\strong{Important}:
+variable names need to be the same as chosen outcome names.). Sample from the prior distribution with ex. \code{rnorm(10000, 0, 1)}.
+
+If not set, automatically samples from the prior distributions (\code{bhlm_object@outcome_priors_c} or \code{bhlm_object@outcome_priors_m}).
+Automatic sampling is not yet implemented for priors defined with data vectors.}
+
+\item{outcome_options}{Choose which outcomes should be plotted. Defaults to \code{bhlm_object@outcome_options}.}
+
 \item{return_plots}{Return ggplot objects in \code{list}.}
+
+\item{log_estimation}{Log estimate the posterior and prior distributions for the plot (Not yet implemented).}
+
+\item{bayes_factors}{Print Bayes factors (Not yet implemented).}
+
+\item{cum_prob}{Print cummulated probability (from log estimated posterior distribution) at chosen point along \code{x} (Not yet implemented).}
+
+\item{iter}{Number of iterations for sampling from prior distribution in automatic sampling.}
 }
 \description{
 Plot outcomes with object from \code{bhlm}.

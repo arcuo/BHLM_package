@@ -60,14 +60,24 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 
 # Posterior plots function ----------------------------------------------------
 
-#' Show posterior distribution plots for outcomes
+#' Posterior distribution plots for outcomes
 #'
 #' @description Plot outcomes with object from \code{bhlm}.
 #' @author Hugh Benjamin Zachariae
 #'
 #'
 #' @param bhlm_object Object returned from \code{bhlm}, of class \code{bhlm_object}.
+#' @param outcome_priors_data \code{data.frame} with variables for each outcome (\strong{Important}:
+#' variable names need to be the same as chosen outcome names.). Sample from the prior distribution with ex. \code{rnorm(10000, 0, 1)}.
+#'
+#' If not set, automatically samples from the prior distributions (\code{bhlm_object@outcome_priors_c} or \code{bhlm_object@outcome_priors_m}).
+#' Automatic sampling is not yet implemented for priors defined with data vectors.
+#' @param outcome_options Choose which outcomes should be plotted. Defaults to \code{bhlm_object@outcome_options}.
 #' @param return_plots Return ggplot objects in \code{list}.
+#' @param log_estimation Log estimate the posterior and prior distributions for the plot (Not yet implemented).
+#' @param bayes_factors Print Bayes factors (Not yet implemented).
+#' @param cum_prob Print cummulated probability (from log estimated posterior distribution) at chosen point along \code{x} (Not yet implemented).
+#' @param iter Number of iterations for sampling from prior distribution in automatic sampling.
 #'
 #' @export
 bhlm.posteriorplot <- function(bhlm_object,
