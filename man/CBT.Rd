@@ -5,6 +5,19 @@
 \alias{CBT}
 \title{CBT data}
 \description{
-CBT data
+Data recieved with permission the authors.
+
+Article:
+
+Cognitive behavioral therapies for informal caregivers of
+patients with cancer and cancer survivors: a systematic
+review and meta-analysis.
 }
-\keyword{data}
+\author{
+Mia S. O'Toole, Robert Zachariae, Megan E. Renna,
+Douglas S. Mennin, & Allison Applebaum, 2016
+}
+\keyword{behavoral}
+\keyword{cognitive}
+\keyword{meta-analysis,}
+\keyword{therapy.}

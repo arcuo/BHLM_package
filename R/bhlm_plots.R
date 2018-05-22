@@ -80,7 +80,7 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 #' @param iter Number of iterations for sampling from prior distribution in automatic sampling.
 #'
 #' @export
-bhlm.posteriorplot <- function(bhlm_object,
+bhlm.SDplots <- function(bhlm_object,
                                outcome_priors_data = NULL,
                                outcome_options = NULL,
                                return_plots = FALSE,

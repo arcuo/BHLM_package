@@ -5,6 +5,17 @@
 \alias{EWI}
 \title{EWI data}
 \description{
-EWI data
+Data recieved with permission the authors.
+
+Article:
+
+The effect of expressive writing intervention on psychological
+and physical health outcomes in cancer patients—a
+systematic review and meta-analysis.
 }
-\keyword{data}
+\author{
+Robert Zachariae & Mia S. O'Toole, 2015
+}
+\keyword{expressive}
+\keyword{meta-analysis,}
+\keyword{writing}

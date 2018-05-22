@@ -1,8 +1,8 @@
-Package: BachelorProject
-Title: What the Package Does (one line, title case)
+Package: ZachariaeBHLM
+Title: Bayesian Hierarchical Latent Mixture model meta analysis and plots.
 Version: 0.0.0.9000
 Authors@R: person("Hugh Benjamin", "Zachariae", email = "benjamin.zachariae@gmail.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Description: Access to three methods, bhlm, bhlm.traceplots, and bhlm.SDplots
 Depends: R (>= 3.3.2),
   tidyverse,
   polspline,
