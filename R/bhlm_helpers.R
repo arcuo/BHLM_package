@@ -230,7 +230,7 @@ plot.outcome.trace <- function (plotdata, outcome, chains, thin, summary) {
     labs(title = paste(outcome,
                        "\nMean: ", round(summary[outcome, "mean"], 3),
                        "\nOutcome trace plot with ", chains, " chains and ",
-                       "\nThinning rate: ", thin,
+                       "Thinning rate: ", thin,
                        "\nn.eff: ", summary[outcome, "n.eff"],
                        "   Rhat: ", round(summary[outcome, "Rhat"], 3), sep =""),
          x = "Iterations",
