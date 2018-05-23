@@ -9,13 +9,17 @@ NULL
 #'@description Run a BHLM model with custom number of latent variables according to specified number of outcome options.
 #'The model sets priors for each outcome, group mean (theta) and estimate variance.
 #'
-#'Go to LINK TO MODEL GRAPHICAL NOTATION for model specification.
+#'Run following for model specification (Graphical notation):
+#'
+#'  \code{plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)}
+#'  \code{rasterImage(bhlm_model_spec,0,0,1,1)}
+#'
 #' @author Hugh Benjamin Zachariae
 #' @export
 #' @param dataframe A data frame with studies, two grouping factor cols (e.g. studies*outcomes),
 #' estimates, and optional ID column.
 #' @param grouping_factor_cols A data vector of two grouping factor columns of the data frame
-#'  (e.g. \code{c("Study", "Outcome")}).
+#'  (e.g. \code{c("Study", "Outcome")}). These columns must be integer vectors.
 #' @param estimate_col Column of estimates in the data frame.
 #' @param outcome_options_col Column containing the different outcome names
 #'
@@ -59,10 +63,12 @@ NULL
 #' @param bayes_method Use JAGS or STAN (currently only JAGS is implemented).
 #' @param jags Parameters for \code{R2jags::\link[R2jags]{jags}}:
 #'
-#'   \code{init} \code{NULL} default, \code{chains},
-#'  \code{iter} iterations per chain, \code{burning} length of burn, \code{thin} thinning rate, and
-#'  \code{DIC} compute deviance, pD and DIC.
-#' @param save_model Input filepath location and name to save the model file as .txt
+#'   \code{init} (\code{NULL} set as default), \code{chains},
+#'  \code{iter} (iterations per chain), \code{burning} (length of burn), \code{thin} (sim thinning rate), and
+#'  \code{DIC} (compute deviance, pD and DIC).
+#' @param save_model Input FALSE to not save the model file,
+#' NULL to save as 'model_file.txt' in working directory, or
+#' filepath location with name to save the model file as .txt (Separated with '\\' or '/').
 #'
 #' @examples
 #'
@@ -80,8 +86,8 @@ bhlm <- function(dataframe,
                  field_theta_precision = NULL,
                  identifier_col = NULL,
                  bayes_method = "jags",
-                 jags_init = NULL, jags_chains=3, jags_iter = 10000,
-                 jags_burnin = 1000,
+                 jags_init = NULL, jags_chains=3, jags_iter = 2000,
+                 jags_burnin = floor(jags_iter/2),
                  jags_thin = max(1, floor(jags_chains * (jags_iter-jags_burnin) / 1000)),
                  jags_DIC = TRUE,
                  save_model = NULL

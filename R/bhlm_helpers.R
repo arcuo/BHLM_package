@@ -14,7 +14,7 @@ bhlm.preprocessing <- function (dataframe,
 
   if(purrr::is_empty(outcome_options)) {
     stop("missing outcome options", call. = FALSE)
-  } else if(purrr::is_empty(grouping_factors_cols) || length(grouping_factors_cols) > 2) {
+  } else if(length(grouping_factors_cols) != 2) {
     stop(paste("missing grouping factors (Studies*Outcomes) or too many factors",
          "(currently limited to only 2)"), call. = FALSE)
   } else {
@@ -179,9 +179,27 @@ bhlm.create.model.list <- function (outcomes_list,
 
 # Write to textfile -----------------------------------------------------------
 
-bhlm.write.model <- function (model_file_list, path = NULL) {
+bhlm.write.model <- function (model_file_list, path) {
 
   if (is.null(path)) {
+
+    connection <- file(paste(getwd(), "model_file.txt", sep = "/"))
+    writeLines(model_file_list, connection)
+    close(connection)
+
+    message(paste("Model file saved to: ", getwd(), " as 'model_file.txt'", sep=""))
+
+    return(paste(getwd(), "model_file.txt", sep = "/"))
+
+  } else if (is.character(path)) {
+
+    connection <- file(path)
+    writeLines(model_file_list, connection)
+    close(connection)
+
+    return(path)
+
+  } else if (!path) {
 
     tmpFile <- tempfile(pattern = "modelFile", tmpdir = tempdir(),  fileext = ".txt")
     connection <- file(tmpFile)
@@ -192,11 +210,12 @@ bhlm.write.model <- function (model_file_list, path = NULL) {
 
   } else {
 
-    connection <- file(path)
-    writeLines(model_file_list, connection)
-    close(connection)
-
-    return(path)
+    stop(paste("save_model is not valid. Set to either",
+               "\n\tFALSE to not save the model file,",
+               "\n\tTRUE to save as 'model_file.txt' i working directory,",
+               "\n\tor set a manual path string with file name at the",
+               "end and '.txt' (with '\\' or '/' separators).",
+               sep=" "), call. = FALSE)
 
   }
 

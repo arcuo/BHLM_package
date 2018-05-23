@@ -17,7 +17,7 @@ bhlm(dataframe, grouping_factor_cols, estimate_col, outcome_options_col,
 estimates, and optional ID column.}
 
 \item{grouping_factor_cols}{A data vector of two grouping factor columns of the data frame
-(e.g. \code{c("Study", "Outcome")}).}
+(e.g. \code{c("Study", "Outcome")}). These columns must be integer vectors.}
 
 \item{estimate_col}{Column of estimates in the data frame.}
 
@@ -63,7 +63,9 @@ estimates, and optional ID column.}
 
 \item{bayes_method}{Use JAGS or STAN (currently only JAGS is implemented).}
 
-\item{save_model}{Input filepath location and name to save the model file as .txt}
+\item{save_model}{Input FALSE to not save the model file,
+NULL to save as 'model_file.txt' in working directory, or
+filepath location with name to save the model file as .txt (Separated with '\\' or '/').}
 
 \item{field_theta}{Optional: Include a another hierarchical level in the form of a field-wide mean distribution.
 Use a string vector with the same distribution as \code{theta_prior} and precision (no mean). The field-wide mean prior,
@@ -71,15 +73,18 @@ is set to \code{theta_prior}. This solution is currently a fix-up, and should on
 
 \item{jags}{Parameters for \code{R2jags::\link[R2jags]{jags}}:
 
-  \code{init} \code{NULL} default, \code{chains},
- \code{iter} iterations per chain, \code{burning} length of burn, \code{thin} thinning rate, and
- \code{DIC} compute deviance, pD and DIC.}
+  \code{init} (\code{NULL} set as default), \code{chains},
+ \code{iter} (iterations per chain), \code{burning} (length of burn), \code{thin} (sim thinning rate), and
+ \code{DIC} (compute deviance, pD and DIC).}
 }
 \description{
 Run a BHLM model with custom number of latent variables according to specified number of outcome options.
 The model sets priors for each outcome, group mean (theta) and estimate variance.
 
-Go to LINK TO MODEL GRAPHICAL NOTATION for model specification.
+Run following for model specification (Graphical notation):
+
+ \code{plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)}
+ \code{rasterImage(bhlm_model_spec,0,0,1,1)}
 }
 \examples{
 

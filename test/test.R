@@ -57,8 +57,7 @@ a = bhlm(dataframe = dat1,
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
-         identifier_col = "Study",
-         save_model = "D:\\Desktop\\bachelors_meta\\model_file.txt"
+         identifier_col = "Study"
         )
 
 phys <- logspline(a@jags_samples$BUGSoutput$sims.list$Physical)

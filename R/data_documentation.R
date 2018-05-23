@@ -37,3 +37,19 @@ NULL
 #'
 NULL
 
+#' bhlm model specification jpeg
+#'
+#'
+#' @name bhlm_model_spec
+#' @docType nativeRaster
+#' @author Benjamin Zachariae, 2018.
+#' @keywords jpeg, Bayesian, Hierarchical model, Latent mixture model.
+#' @description Image displaying the graphical notation for the model specification.
+#'
+#' Run following to show:
+#'
+#'  \code{plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)}
+#'  \code{rasterImage(bhlm_model_spec,0,0,1,1)}
+#'
+NULL
+
