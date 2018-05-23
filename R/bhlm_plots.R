@@ -48,7 +48,8 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
   plots <- lapply(outcome_options, plot.outcome.trace,
                   chains = bugs_output$n.chains,
                   plotdata = outcome_sims,
-                  thin = bugs_output$n.thin)
+                  thin = bugs_output$n.thin,
+                  summary = bugs_output$summary)
 
   lapply(plots, print)
 
