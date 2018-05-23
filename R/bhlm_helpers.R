@@ -227,10 +227,10 @@ plot.outcome.trace <- function (plotdata, outcome, chains, thin, summary) {
 
   ggplot(plotdata, aes_string(x = "iterations", y = outcome, color = "chains")) + geom_line(alpha = 0.9) +
     scale_color_brewer(palette = "Set1") +
-    labs(title = paste(outcome,
+    labs(title = paste(outcome, " trace plot",
                        "\n\nMean: ", round(summary[outcome, "mean"], 3),
-                       "\nOutcome trace plot with ", chains, " chains and ",
-                       "thinning rate: ", thin,
+                       "\n Chains: ", chains,
+                       "   Thinning rate: ", thin,
                        "\nn.eff: ", summary[outcome, "n.eff"],
                        "   Rhat: ", round(summary[outcome, "Rhat"], 3), sep =""),
          x = "Iterations",
