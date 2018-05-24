@@ -48,6 +48,8 @@ samples = jags(jags.data, inits = NULL, resultParameters,
 
 ## EWI ------------------------------------------------------------------------
 
+dat1 = EWI
+
 a = bhlm(dataframe = dat1,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
@@ -60,29 +62,12 @@ a = bhlm(dataframe = dat1,
          identifier_col = "Study"
         )
 
-phys <- logspline(a@jags_samples$BUGSoutput$sims.list$Physical)
-prior <-logspline(rnorm(10000, 0,1))
-
-u1 <- min(qlogspline(0.01, phys), qlogspline(0.01, prior))
-u2 <- max(qlogspline(0.99, phys), qlogspline(0.99, prior))
-u3 <- 1.1 * u1 - 0.1 * u2
-u4 <- 1.1 * u2 - 0.1 * u1
-
-physdat <- data.frame(x = (0:(100 - 1))/(100 - 1) * (u4 - u3) + u3) %>%
-  mutate(post = dlogspline(x, phys), prior = dlogspline(x, prior)) %>%
-  gather("postprior", "estimation", c(post, prior))
-
-ggplot(physdat, aes(x, estimation, color = postprior)) + geom_line() +
-  geom_segment(aes(x = 0, y = dlogspline(0, prior), yend = dlogspline(0, phys), xend = 0), linetype = "dashed", color = "black") +
-  theme_bw()
-
-dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Physical))/dnorm(0,0,1)
-dlogspline(0, logspline(a@jags_samples$BUGSoutput$sims.list$Psychological))/dnorm(0,0,1)
 
 traceplots <- bhlm.traceplot(a, return_plots = TRUE)
+postplots <- bhlm.SDplots(a, 0, return_plots = T)
 
 priors <-  data.frame(Physical = rnorm(10000, 0, 1), Psychological = rnorm(10000, 0, 1), QoL = rnorm(10000, 0, 1))
-postplots <- bhlm.posteriorplot(a, outcome_priors_data = priors)
+postplots <- bhlm.SDplots(a, 0, outcome_priors_data = priors)
 
 phys = logspline(a@jags_samples$BUGSoutput$sims.list$Physical)
 plot(phys)
@@ -90,6 +75,9 @@ plot(phys)
 suplot(density(a@jags_samples$BUGSoutput$sims.list$Physical))
 
 ## CBT ------------------------------------------------------------------------
+
+dat2 = CBT
+dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4", "ce" = "5"))
 
 b = bhlm(dataframe = dat2,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
@@ -108,6 +96,8 @@ b = bhlm(dataframe = dat2,
 
 ### WITH MATRIX PRIORS --------------------------------------------------------
 
+dat2 = CBT
+dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4", "ce" = "5"))
 outcome_priors_new <- matrix(c("dnorm", 0, 1),
                              3,
                              ncol = 3, byrow = TRUE)
@@ -122,7 +112,7 @@ b2 = bhlm(dataframe = dat2,
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
-         jags_thin = 27,
+         jags_thin = 1,
          jags_chains = 3,
          field_theta_precision = NULL,
          save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
@@ -132,7 +122,7 @@ b2 = bhlm(dataframe = dat2,
 
 traceplots <- bhlm.traceplot(b2, return_plots = TRUE)
 
-postplots <- bhlm.posteriorplot(b2, return_plots = F)
+postplots <- bhlm.SDplots(b2, 0, return_plots = F)
 
 c <- jags.samples(b@jags_samples$model, c("psi", "phi", "rho"), n.iter = 1000)
 

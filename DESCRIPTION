@@ -17,7 +17,8 @@ Imports: R2jags,
     lazyeval,
     polspline,
     purrrlyr,
-    tidyverse
+    tidyverse,
+    stringr
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

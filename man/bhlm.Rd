@@ -8,7 +8,7 @@ bhlm(dataframe, grouping_factor_cols, estimate_col, outcome_options_col,
   outcome_options, outcome_priors, lambda_prior, theta_prior,
   field_theta_precision = NULL, identifier_col = NULL,
   bayes_method = "jags", jags_init = NULL, jags_chains = 3,
-  jags_iter = 10000, jags_burnin = 1000, jags_thin = max(1,
+  jags_iter = 2000, jags_burnin = floor(jags_iter/2), jags_thin = max(1,
   floor(jags_chains * (jags_iter - jags_burnin)/1000)), jags_DIC = TRUE,
   save_model = NULL)
 }

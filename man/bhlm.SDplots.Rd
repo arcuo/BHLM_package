@@ -2,14 +2,16 @@
 % Please edit documentation in R/bhlm_plots.R
 \name{bhlm.SDplots}
 \alias{bhlm.SDplots}
-\title{Posterior distribution plots for outcomes}
+\title{Savage-Dickey plots for outcomes}
 \usage{
-bhlm.SDplots(bhlm_object, outcome_priors_data = NULL,
-  outcome_options = NULL, return_plots = FALSE, log_estimation = FALSE,
-  bayes_factors = TRUE, cum_prob = NULL, iter = 10000)
+bhlm.SDplots(bhlm_object, null_hypothesis, outcome_priors_data = NULL,
+  outcome_options = NULL, return_plots = FALSE, log_estimation = TRUE,
+  cum_prob = NULL, iter = 10000)
 }
 \arguments{
 \item{bhlm_object}{Object returned from \code{bhlm}, of class \code{bhlm_object}.}
+
+\item{null_hypothesis}{\code{int}, point at which to check the Bayes Factor.}
 
 \item{outcome_priors_data}{\code{data.frame} with variables for each outcome (\strong{Important}:
 variable names need to be the same as chosen outcome names.). Sample from the prior distribution with ex. \code{rnorm(10000, 0, 1)}.
@@ -21,16 +23,25 @@ Automatic sampling is not yet implemented for priors defined with data vectors.}
 
 \item{return_plots}{Return ggplot objects in \code{list}.}
 
-\item{log_estimation}{Log estimate the posterior and prior distributions for the plot (Not yet implemented).}
+\item{log_estimation}{Log estimate the posterior and prior distributions for the plot.
 
-\item{bayes_factors}{Print Bayes factors (Not yet implemented).}
+Non-log estimated plots are not yet fully implemented.}
 
-\item{cum_prob}{Print cummulated probability (from log estimated posterior distribution) at chosen point along \code{x} (Not yet implemented).}
+\item{cum_prob}{Print cummulated probability (from log estimated posterior distribution) at chosen point along \code{x}
+
+(Not yet implemented).}
 
 \item{iter}{Number of iterations for sampling from prior distribution in automatic sampling.}
 }
+\value{
+\code{list} of outcomes with each element containing a plot and log estimation of the posterior distribution.
+
+Get plot:  \code{list$outcome$plot}
+
+Get Log estimate:  \code{list$outcome$log_est}
+}
 \description{
-Plot outcomes with object from \code{bhlm}.
+Plot outcomes posterior and prior distributions with object from \code{bhlm}.
 }
 \author{
 Hugh Benjamin Zachariae

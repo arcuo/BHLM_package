@@ -67,21 +67,61 @@ define.prior.dist <- function (dist) {
 
 }
 
-sample.prior.dist <- function(dist, iter) {
+# Automated sampling of prior distributions (matrix)
 
-  if (length(dist) > 1) {
+sample.prior.dist.m <- function(dist, iter) {
+
+  if (dist[2] == "dnorm") {
+
     d <- data.frame(
-      "temp" = do.call(sub("d", "r", dist[2]),
-                        as.list(c(iter, as.numeric(tail(dist, length(dist)-2))))
-                        )
+      "temp" = c(iter,
+                 as.numeric(dist[3]),
+                 1/sqrt(as.numeric(dist[4]))) %>%
+        as.list() %>%
+        do.call("rnorm", .)
       )
-    names(d) = dist[1]
+
+    names(d) <- dist[1]
 
     d <- d %>%
       gather("outcome", "sim") %>%
-      mutate("postprior" = as.factor("prior"))
+      mutate("postprior" = as.factor("Prior"))
 
     return(d)
+
+  } else {
+    stop(paste("outcome_priors_m: Automatic prior distribution plotting is",
+               " only implemented for gaussian priors (dnorm)."), call. = FALSE)
+  }
+
+}
+
+# Automated sampling of prior distributions (character vector)
+
+sample.prior.dist.c <- function(dist, iter) {
+
+  if (grepl("dnorm", a@outcome_priors_c[1])) {
+
+    args <- stringr::str_extract_all(dist, "\\d", simplify = T) %>%
+      as.numeric()
+
+    d <- data.frame(
+      "temp" = c(iter, args[1], 1/sqrt(args[2])) %>%
+        as.list() %>%
+        do.call("rnorm", .)
+    )
+
+    names(d) <- stringr::str_extract(dist, "^.*(?=#)")
+
+    d <- d %>%
+      gather("outcome", "sim") %>%
+      mutate("postprior" = as.factor("Prior"))
+
+    return(d)
+
+  } else {
+    stop(paste("outcome_priors_m: Automatic prior distribution plotting is",
+               " only implemented for gaussian priors (dnorm)."), call. = FALSE)
   }
 
 }
@@ -240,12 +280,73 @@ plot.outcome.trace <- function (plotdata, outcome, chains, thin, summary) {
 
 }
 
-plot.outcome.post <- function (plotdata, outcome_name) {
+plot.outcome.sd <- function (plotdata, outcome_name) {
 
   filter(plotdata, outcome == !!outcome_name) %>%
     ggplot(aes(x = sim, fill = postprior)) +
       geom_density(alpha = 0.5) +
       labs(y = "Density", x = outcome_name, fill = "Posterior/Prior") +
       theme_bw()
+
+}
+
+plot.outcome.sd.log <- function (plotdata, outcome_name,
+                                 null_hypothesis,
+                                 estimate) {
+
+  filtered_data <- filter(plotdata, outcome == !!outcome_name)
+
+  postlog <- filtered_data %>%
+    filter(postprior == "Posterior") %>%
+    select(sim) %>%
+    logspline()
+
+  priorlog <- filtered_data %>%
+    filter(postprior == "Prior") %>%
+    select(sim) %>%
+    logspline()
+
+  u1 <- min(qlogspline(0.01, postlog), qlogspline(0.01, priorlog))
+  u2 <- max(qlogspline(0.99, postlog), qlogspline(0.99, priorlog))
+  u3 <- 1.1 * u1 - 0.1 * u2
+  u4 <- 1.1 * u2 - 0.1 * u1
+
+  plotdat2 <- data.frame(x = (0:(1000 - 1))/(1000 - 1) * (u4 - u3) + u3) %>%
+    mutate(Posterior = dlogspline(x, postlog), Prior = dlogspline(x, priorlog)) %>%
+    gather("postprior", "estimation", c(Posterior, Prior))
+
+  post_hyp <- dlogspline(null_hypothesis, postlog)
+  prior_hyp <- dlogspline(null_hypothesis, priorlog)
+
+  bf01 <- round(prior_hyp/post_hyp, 3)
+  bf10 <- round(post_hyp/prior_hyp, 3)
+
+  plot <- ggplot(plotdat2, aes(x, estimation, color = postprior)) + geom_line() +
+    scale_color_manual(values = c("chocolate4", "chocolate")) +
+    geom_segment(aes(x = null_hypothesis,
+                     y = prior_hyp,
+                     yend = post_hyp,
+                     xend = null_hypothesis),
+                 linetype = "dashed",
+                 color = "grey10") +
+    geom_point(aes(x = null_hypothesis,
+                   y = prior_hyp),
+               color = "black") +
+    geom_point(aes(x = null_hypothesis,
+                   y = post_hyp),
+               color = "black") +
+    labs(title = paste(outcome_name, " Savage-Dickey plot",
+                       "\n\nBayes Factor: ", bf01, " / ", bf10,
+                       sep =""),
+         x = estimate,
+         y = "Log estimated density",
+         color = "Posterior/Prior") +
+    theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+
+  return_obj <- vector(mode="list", length = 0)
+  return_obj$plot <-  plot
+  return_obj$log_est <- postlog
+
+  return(return_obj)
 
 }
