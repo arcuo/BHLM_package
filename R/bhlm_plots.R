@@ -1,6 +1,7 @@
 #' @include bhlm_classes.R
 #'
 #' @importFrom groupdata2 group
+#' @import polspline
 
 NULL
 
@@ -85,7 +86,8 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 #' (Not yet implemented).
 #' @param iter Number of iterations for sampling from prior distribution in automatic sampling.
 #'
-#' @return \code{list} of outcomes with each element containing a plot and log estimation of the posterior distribution.
+#' @return \code{list} of outcomes with each element containing a plot and log estimation of the posterior distribution. T
+#' he simulation data is also listed as "data".
 #'
 #' Get plot:  \code{list$outcome$plot}
 #'
@@ -164,6 +166,8 @@ bhlm.SDplots <- function(bhlm_object,
                     null_hypothesis = null_hypothesis,
                     estimate = bhlm_object@estimate_name)
     names(plots) <- outcome_options
+
+    plots$data <- postprior_data
   } else {
     warning("Plot without log estimation is not yet implemented and simply plots the two sampling distributions.")
     plots <- lapply(outcome_options, plot.outcome.sd,

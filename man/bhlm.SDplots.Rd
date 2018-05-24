@@ -34,7 +34,8 @@ Non-log estimated plots are not yet fully implemented.}
 \item{iter}{Number of iterations for sampling from prior distribution in automatic sampling.}
 }
 \value{
-\code{list} of outcomes with each element containing a plot and log estimation of the posterior distribution.
+\code{list} of outcomes with each element containing a plot and log estimation of the posterior distribution. T
+he simulation data is also listed as "data".
 
 Get plot:  \code{list$outcome$plot}
 

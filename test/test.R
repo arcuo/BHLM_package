@@ -77,7 +77,13 @@ suplot(density(a@jags_samples$BUGSoutput$sims.list$Physical))
 ## CBT ------------------------------------------------------------------------
 
 dat2 = CBT
-dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4", "ce" = "5"))
+dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>%
+  mutate(Outcome2 = fct_recode(Outcome2,
+                               "Psychological" = "1",
+                               "Interpersonal" = "2",
+                               "Physical" = "3",
+                               "Mastery" = "4",
+                               "QoL" = "5"))
 
 b = bhlm(dataframe = dat2,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
