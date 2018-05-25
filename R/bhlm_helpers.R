@@ -104,7 +104,7 @@ sample.prior.dist.c <- function(dist, iter) {
 
   if (grepl("dnorm", a@outcome_priors_c[1])) {
 
-    args <- stringr::str_extract_all(dist, "\\d", simplify = T) %>%
+    args <- stringr::str_extract_all(dist, "\\d(\\.\\d+)?", simplify = T) %>%
       as.numeric()
 
     d <- data.frame(

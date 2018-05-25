@@ -12,7 +12,7 @@ NULL
 #'
 #'Run following for model specification (Graphical notation):
 #'
-#'  \code{plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)}
+#'  \code{plot(0:1,0:1,type="n",ann=F,axes=F)}
 #'  \code{rasterImage(bhlm_model_spec,0,0,1,1)}
 #'
 #' @author Hugh Benjamin Zachariae
@@ -41,12 +41,12 @@ NULL
 #'
 #'    \code{c("dnorm", 0, 1)}
 #'
-#'  Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = TRUE
+#'  Define all outcome priors manually with \code{matrix}. \strong{Notice}: byrow = T
 #'
 #'  \code{matrix(c("dnorm", 0, 1, "dnorm", 0, 1.1),
 #'  nrow = 'number of outcomes',
 #'  ncol = 'maximum amount of dist parameters',
-#'  byrow = TRUE)}
+#'  byrow = T)}
 #'
 #'  or as character vector of \code{characters}
 #'
@@ -67,7 +67,7 @@ NULL
 #'   \code{init} (\code{NULL} set as default), \code{chains},
 #'  \code{iter} (iterations per chain), \code{burning} (length of burn), \code{thin} (sim thinning rate), and
 #'  \code{DIC} (compute deviance, pD and DIC).
-#' @param save_model Input FALSE to not save the model file,
+#' @param save_model Input F to not save the model file,
 #' NULL to save as 'model_file.txt' in working directory, or
 #' filepath location with name to save the model file as .txt (Separated with '\\' or '/').
 #'
@@ -90,13 +90,18 @@ bhlm <- function(dataframe,
                  jags_init = NULL, jags_chains=3, jags_iter = 2000,
                  jags_burnin = floor(jags_iter/2),
                  jags_thin = max(1, floor(jags_chains * (jags_iter-jags_burnin) / 1000)),
-                 jags_DIC = TRUE,
+                 jags_DIC = T,
                  save_model = NULL
                  ) {
 
   if (length(outcome_options) <= 1) {
     stop(paste("Not enough outcomes, found ", length(outcome_options),
-               ", required at least two.", sep = ""), call. = FALSE)
+               ", required at least two.", sep = ""), call. = F)
+  }
+
+
+  if (!all(outcome_options %in% levels(dataframe[,outcome_options_col]))) {
+    stop("One or more outcome names are not in outcome_option_col0", call. = F)
   }
 
   if(bayes_method == "jags") {
@@ -112,7 +117,7 @@ bhlm <- function(dataframe,
 
     }, error = function(e) {
 
-      stop(paste("Preprocessing:", e), call. = FALSE)
+      stop(paste("Preprocessing:", e), call. = F)
 
     })
 
@@ -140,9 +145,9 @@ bhlm <- function(dataframe,
                    ", requires ", length(outcome_options),
                    " priors defined.\n  For full outcome prior defined, use: \n",
                    "  matrix(outcome_priors, nrow = length(outcome_options), ",
-                   "ncol = 'distribution + max(parameters)', byrow = TRUE)",
+                   "ncol = 'distribution + max(parameters)', byrow = T)",
                    sep = ""),
-             call. = FALSE)
+             call. = F)
       } else {
         outcome_priors_new <- outcome_priors
         outcome_priors_m <- cbind(outcome_options, outcome_priors_new)
@@ -160,7 +165,7 @@ bhlm <- function(dataframe,
                   )
           outcome_priors_new <- matrix(outcome_priors,
                                        length(outcome_options),
-                                       ncol = 3, byrow = TRUE)
+                                       ncol = 3, byrow = T)
           outcome_priors_m <- cbind(outcome_options, outcome_priors_new)
         # Else c("dnorm(0, 1)", ...) (all outcome priors defined)
         } else {
@@ -168,7 +173,7 @@ bhlm <- function(dataframe,
           if (!all(grepl(dist_check, outcome_priors))) {
             stop(paste("Error in one of the defined outcome prior distributions.\n  ",
                  paste(outcome_priors, collapse = "\n"),
-                 sep = ""), call. = FALSE)
+                 sep = ""), call. = F)
           }
           if (length(outcome_priors) != length(outcome_options)) {
             stop(paste("You have defined more than one outcome prior, but not all. Found ",
@@ -184,7 +189,7 @@ bhlm <- function(dataframe,
         if (!grepl(dist_check, outcome_priors)) {
           stop(paste("Error in the defined outcome prior distribution.\n",
                      outcome_priors,
-                     sep = ""), call. = FALSE)
+                     sep = ""), call. = F)
         } else {
           warning(paste("Only one outcome prior defined as string, '",
                         outcome_priors,
@@ -199,7 +204,7 @@ bhlm <- function(dataframe,
                  class(outcome_priors),
                  ".\n  oucome_priors has following setups: \n  ",
                  "One prior for all",
-                 sep = ""), call. = FALSE)
+                 sep = ""), call. = F)
     }
 
 # Create model file -----------------------------------------------------------
@@ -216,7 +221,7 @@ bhlm <- function(dataframe,
 
     }, error = function(e) {
 
-      stop(paste("Model creation:", e), call. = FALSE)
+      stop(paste("Model creation:", e), call. = F)
 
     })
 
@@ -231,7 +236,7 @@ bhlm <- function(dataframe,
       stop(paste("JAGS model sampling: ",
                  "\n  For Syntax error, consider saving model",
                  " file by setting a path for 'save_model'.\n  ", e,
-                 sep = ""), call. = FALSE)
+                 sep = ""), call. = F)
 
     })
   }
@@ -258,10 +263,10 @@ bhlm <- function(dataframe,
 #' @param density.estimate Choose between \code{polspline::logspline} or \code{base::density} for density estimation method.
 #' @export
 
-bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density.estimate = "logspline") {
+bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density_estimate = "logspline") {
 
   if (class(bhlm_object) != "bhlm_object") {
-    stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
+    stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = F)
   }
 
   if (is.null(outcome_options)) {
@@ -277,7 +282,7 @@ bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density.estimate = "l
 
   })
 
-  if (density.estimate == "logspline") {
+  if (density_estimate == "logspline") {
 
     table <- plyr::ldply(outcome_options, function(o) {
 
@@ -295,7 +300,7 @@ bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density.estimate = "l
                         'MAP' = d$x[which.max(d$y)]))
       })
 
-    } else if (density.estimate == "density") {
+    } else if (density_estimate == "density") {
 
     table <- plyr::ldply(1:length(outcome_options), function(o) {
 
@@ -304,7 +309,7 @@ bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density.estimate = "l
         as_tibble()
       })
     } else {
-      stop("incorrect density estimation method", call. = FALSE)
+      stop("incorrect density estimation method", call. = F)
     }
 
   return(table)

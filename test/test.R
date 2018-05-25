@@ -46,10 +46,11 @@ samples = jags(jags.data, inits = NULL, resultParameters,
 
 #Main test --------------------------------------------------------------------
 
-## EWI ------------------------------------------------------------------------
+## EWI 1 ----------------------------------------------------------------------
 
 dat1 = EWI
 
+set.seed(1)
 a = bhlm(dataframe = dat1,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
@@ -59,22 +60,41 @@ a = bhlm(dataframe = dat1,
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
-         identifier_col = "Study"
+         identifier_col = "Study",
+         jags_iter = 3000,
+         jags_burnin = 500
         )
 
-
+a@jags_samples
 traceplots <- bhlm.traceplot(a, return_plots = TRUE)
 postplots <- bhlm.SDplots(a, 0, return_plots = T)
+bhlm.MAP(a)
 
-map <- bhlm.MAP(a)
+## EWI 2 ----------------------------------------------------------------------
 
-priors <-  data.frame(Physical = rnorm(10000, 0, 1), Psychological = rnorm(10000, 0, 1), QoL = rnorm(10000, 0, 1))
-postplots <- bhlm.SDplots(a, 0, outcome_priors_data = priors)
+dat1 = EWI
 
-phys = logspline(a@jags_samples$BUGSoutput$sims.list$Physical)
-plot(phys)
+set.seed(1)
+a2 = bhlm(dataframe = dat1,
+         grouping_factor_cols = c("StudNo", "OutcomeNo"),
+         estimate_col = "Hedges.s.g",
+         outcome_options_col =  "Outcome2",
+         outcome_options = c("Physical", "Psychological", "QoL"),
+         outcome_priors = c("dnorm(0, 0.1)"),
+         lambda_prior = "dgamma(0.001, 0.001)",
+         theta_prior = "dnorm(0,1)",
+         bayes_method = "jags",
+         identifier_col = "Study",
+         jags_iter = 3000,
+         jags_burnin = 500
+)
 
-suplot(density(a@jags_samples$BUGSoutput$sims.list$Physical))
+a2@jags_samples
+traceplots <- bhlm.traceplot(a2, return_plots = TRUE)
+postplots <- bhlm.SDplots(a2, 0, return_plots = T)
+bhlm.MAP(a2)
+
+
 
 ## CBT ------------------------------------------------------------------------
 
@@ -86,43 +106,50 @@ dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>%
                                "Physical" = "3",
                                "Mastery" = "4",
                                "QoL" = "5"))
-
+set.seed(1)
 b = bhlm(dataframe = dat2,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
          outcome_options_col =  "Outcome2",
-         outcome_options = c("phi", "rho", "psi"),
-         outcome_priors = c("dnorm(0, 1)"),
+         outcome_options = c("Psychological","Interpersonal","Physical","Mastery","QoL"),
+         outcome_priors = c("dnorm", 0, 1),
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
-         jags_thin = 27,
-         jags_chains = 3,
-         save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
+         jags_iter = 3000,
+         jags_burnin = 500
 )
+
+b@jags_samples
+traceplots <- bhlm.traceplot(b, return_plots = TRUE)
+postplots <- bhlm.SDplots(b, 0, return_plots = T)
+bhlm.MAP(b)
 
 ### WITH MATRIX PRIORS --------------------------------------------------------
 
-outcome_priors_new <- matrix(c("dnorm", 0, 1),
-                             3,
+outcome_priors_new <- matrix(c("dnorm", 0, 0.1),
+                             5,
                              ncol = 3, byrow = TRUE)
-
+set.seed(1)
 b2 = bhlm(dataframe = dat2,
          grouping_factor_cols = c("StudNo", "OutcomeNo"),
          estimate_col = "Hedges.s.g",
          outcome_options_col =  "Outcome2",
-         outcome_options = c("phi", "rho", "psi"),
+         outcome_options = c("Psychological","Interpersonal","Physical","Mastery","QoL"),
          outcome_priors = outcome_priors_new,
          lambda_prior = "dgamma(0.001, 0.001)",
          theta_prior = "dnorm(0,1)",
          bayes_method = "jags",
          identifier_col = "Study",
-         jags_thin = 1,
-         jags_chains = 3,
-         field_theta_precision = NULL,
-         save_model = "D:\\Desktop\\bachelors_meta\\model_file2.txt"
+         jags_iter = 3000,
+         jags_burnin = 500
 )
+
+b2@jags_samples
+traceplots <- bhlm.traceplot(b2, return_plots = TRUE)
+postplots <- bhlm.SDplots(b2, 0, return_plots = T)
+bhlm.MAP(b2)
 
 # Plots -----------------------------------------------------------------------
 
