@@ -5,8 +5,8 @@
 \title{Savage-Dickey plots for outcomes}
 \usage{
 bhlm.SDplots(bhlm_object, null_hypothesis, outcome_priors_data = NULL,
-  outcome_options = NULL, return_plots = FALSE, log_estimation = TRUE,
-  cum_prob = NULL, iter = 10000)
+  outcome_options = NULL, return_plots = FALSE,
+  density_estimation = "logspline", cum_prob = NULL, iter = 10000)
 }
 \arguments{
 \item{bhlm_object}{Object returned from \code{bhlm}, of class \code{bhlm_object}.}
@@ -23,7 +23,7 @@ Automatic sampling is not yet implemented for priors defined with data vectors.}
 
 \item{return_plots}{Return ggplot objects in \code{list}.}
 
-\item{log_estimation}{Log estimate the posterior and prior distributions for the plot.
+\item{density_estimation}{Log estimate the posterior and prior distributions for the plot.
 
 Non-log estimated plots are not yet fully implemented.}
 

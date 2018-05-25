@@ -78,7 +78,7 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
 #' Automatic sampling is not yet implemented for priors defined with data vectors.
 #' @param outcome_options Choose which outcomes should be plotted. Defaults to \code{bhlm_object@outcome_options}.
 #' @param return_plots Return ggplot objects in \code{list}.
-#' @param log_estimation Log estimate the posterior and prior distributions for the plot.
+#' @param density_estimation Log estimate the posterior and prior distributions for the plot.
 #'
 #' Non-log estimated plots are not yet fully implemented.
 #' @param cum_prob Print cummulated probability (from log estimated posterior distribution) at chosen point along \code{x}
@@ -99,7 +99,7 @@ bhlm.SDplots <- function(bhlm_object,
                          outcome_priors_data = NULL,
                          outcome_options = NULL,
                          return_plots = FALSE,
-                         log_estimation = TRUE,
+                         density_estimation = "logspline",
                          cum_prob = NULL,
                          iter = 10000) {
 
@@ -160,18 +160,30 @@ bhlm.SDplots <- function(bhlm_object,
 
   # Returns ------------------------------------------------------------------
 
-  if (log_estimation) {
+  if (density_estimation == "logspline") {
     plots <- lapply(outcome_options, plot.outcome.sd.log,
                     plotdata = postprior_data,
                     null_hypothesis = null_hypothesis,
                     estimate = bhlm_object@estimate_name)
     names(plots) <- outcome_options
-
     plots$data <- postprior_data
-  } else {
-    warning("Plot without log estimation is not yet implemented and simply plots the two sampling distributions.")
-    plots <- lapply(outcome_options, plot.outcome.sd,
+  } else if (density_estimation == "base") {
+    plots <- lapply(outcome_options, plot.outcome.sd.base,
+                    plotdata = postprior_data,
+                    null_hypothesis = null_hypothesis,
+                    estimate = bhlm_object@estimate_name)
+    names(plots) <- outcome_options
+    plots$data <- postprior_data
+  } else if (density_estimation == "sims") {
+
+    warning("Plot with geom_density is not yet fully implemented and simply plots the two sampling distributions.")
+    plots <- lapply(outcome_options, plot.outcome.sd.geom,
                     plotdata = postprior_data)
+
+  } else {
+
+    stop("incorrect density estimation method", call. = FALSE)
+
   }
 
   lapply(outcome_options, function(x) print(plots[[x]][["plot"]]))

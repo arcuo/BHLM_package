@@ -38,6 +38,8 @@ bhlm.preprocessing <- function (dataframe,
                          funs(outcomes_numeric = as.numeric(.)))
     }
 
+    # Create start bounds (index) for studies loop.
+
     start_bounds <- useful[grouping_factors_cols[1]] %>%
       duplicated() %>%
       which(x = (. == FALSE)) %>%
@@ -280,7 +282,7 @@ plot.outcome.trace <- function (plotdata, outcome, chains, thin, summary) {
 
 }
 
-plot.outcome.sd <- function (plotdata, outcome_name) {
+plot.outcome.sd.geom <- function (plotdata, outcome_name) {
 
   filter(plotdata, outcome == !!outcome_name) %>%
     ggplot(aes(x = sim, fill = postprior)) +
@@ -296,27 +298,27 @@ plot.outcome.sd.log <- function (plotdata, outcome_name,
 
   filtered_data <- filter(plotdata, outcome == !!outcome_name)
 
-  postlog <- filtered_data %>%
+  post_log <- filtered_data %>%
     filter(postprior == "Posterior") %>%
     select(sim) %>%
     logspline()
 
-  priorlog <- filtered_data %>%
+  prior_log <- filtered_data %>%
     filter(postprior == "Prior") %>%
     select(sim) %>%
     logspline()
 
-  u1 <- min(qlogspline(0.01, postlog), qlogspline(0.01, priorlog))
-  u2 <- max(qlogspline(0.99, postlog), qlogspline(0.99, priorlog))
+  u1 <- min(qlogspline(0.01, post_log), qlogspline(0.01, prior_log))
+  u2 <- max(qlogspline(0.99, post_log), qlogspline(0.99, prior_log))
   u3 <- 1.1 * u1 - 0.1 * u2
   u4 <- 1.1 * u2 - 0.1 * u1
 
   plotdat2 <- data.frame(x = (0:(1000 - 1))/(1000 - 1) * (u4 - u3) + u3) %>%
-    mutate(Posterior = dlogspline(x, postlog), Prior = dlogspline(x, priorlog)) %>%
+    mutate(Posterior = dlogspline(x, post_log), Prior = dlogspline(x, prior_log)) %>%
     gather("postprior", "estimation", c(Posterior, Prior))
 
-  post_hyp <- dlogspline(null_hypothesis, postlog)
-  prior_hyp <- dlogspline(null_hypothesis, priorlog)
+  post_hyp <- dlogspline(null_hypothesis, post_log)
+  prior_hyp <- dlogspline(null_hypothesis, prior_log)
 
   bf01 <- round(prior_hyp/post_hyp, 3)
   bf10 <- round(post_hyp/prior_hyp, 3)
@@ -345,7 +347,61 @@ plot.outcome.sd.log <- function (plotdata, outcome_name,
 
   return_obj <- vector(mode="list", length = 0)
   return_obj$plot <-  plot
-  return_obj$log_est <- postlog
+  return_obj$log_est <- post_log
+
+  return(return_obj)
+
+}
+
+plot.outcome.sd.base <- function (plotdata, outcome_name,
+                                 null_hypothesis,
+                                 estimate) {
+
+  filtered_data <- filter(plotdata, outcome == !!outcome_name)
+
+  post_dens <- filtered_data %>%
+    filter(postprior == "Posterior")
+  post_dens <- density(post_dens$sim)
+
+  prior_dens <- filtered_data %>%
+    filter(postprior == "Prior")
+  prior_dens <- density(prior_dens$sim)
+
+
+  plotdat2 <- data.frame(x = post_dens$x, estimation = post_dens$y, postprior = "Posterior") %>%
+    rbind(data.frame(x = prior_dens$x, estimation = prior_dens$y, postprior = "Prior"))
+
+  post_hyp = approx(post_dens$x, post_dens$y, xout = null_hypothesis)$y
+  prior_hyp = approx(prior_dens$x, prior_dens$y, xout = null_hypothesis)$y
+
+  bf01 <- round(prior_hyp/post_hyp, 3)
+  bf10 <- round(post_hyp/prior_hyp, 3)
+
+  plot <- ggplot(plotdat2, aes(x, estimation, color = postprior)) + geom_line() +
+    scale_color_manual(values = c("chocolate4", "chocolate")) +
+    geom_segment(aes(x = null_hypothesis,
+                     y = prior_hyp,
+                     yend = post_hyp,
+                     xend = null_hypothesis),
+                 linetype = "dashed",
+                 color = "grey10") +
+    geom_point(aes(x = null_hypothesis,
+                   y = prior_hyp),
+               color = "black") +
+    geom_point(aes(x = null_hypothesis,
+                   y = post_hyp),
+               color = "black") +
+    labs(title = paste(outcome_name, " Savage-Dickey plot",
+                       "\n\nBayes Factor: ", bf01, " / ", bf10,
+                       sep =""),
+         x = estimate,
+         y = "Estimated density (base::density)",
+         color = "Posterior/Prior") +
+    theme_bw() + theme(plot.title = element_text(hjust = 0.5))
+
+  return_obj <- vector(mode="list", length = 0)
+  return_obj$plot <-  plot
+  return_obj$dens_est <- post_dens
 
   return(return_obj)
 

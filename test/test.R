@@ -66,6 +66,8 @@ a = bhlm(dataframe = dat1,
 traceplots <- bhlm.traceplot(a, return_plots = TRUE)
 postplots <- bhlm.SDplots(a, 0, return_plots = T)
 
+map <- bhlm.MAP(a)
+
 priors <-  data.frame(Physical = rnorm(10000, 0, 1), Psychological = rnorm(10000, 0, 1), QoL = rnorm(10000, 0, 1))
 postplots <- bhlm.SDplots(a, 0, outcome_priors_data = priors)
 
@@ -102,8 +104,6 @@ b = bhlm(dataframe = dat2,
 
 ### WITH MATRIX PRIORS --------------------------------------------------------
 
-dat2 = CBT
-dat2 = mutate(dat2, Outcome2 = as.factor(Outcome)) %>% mutate(Outcome2 = fct_recode(Outcome2, "phi" = "1", "rho" = "2", "psi" = "3", "the" = "4", "ce" = "5"))
 outcome_priors_new <- matrix(c("dnorm", 0, 1),
                              3,
                              ncol = 3, byrow = TRUE)
