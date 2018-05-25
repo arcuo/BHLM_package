@@ -2,6 +2,7 @@
 #' @include bhlm_helpers.R
 #'
 #' @import tidyverse
+#' @import plyr
 #' @import R2jags
 NULL
 
@@ -243,6 +244,70 @@ bhlm <- function(dataframe,
              outcome_priors_m = outcome_priors_m,
              outcome_priors_c = outcome_priors_c,
              estimate_name = estimate_col))
+
+}
+
+#'@title Maximum a posteriori
+#'@description Create a dataframe with outcome names, and maximum posteriori for each outcome.
+#'You can choose the density estimation method (\code{polspline::logspline} or \code{base::density}).
+#'
+#' @author Hugh Benjamin Zachariae
+#' @param bhlm_object Object returned from \code{bhlm}, of class \code{bhlm_object}.
+#' @param outcome_options Character vector specifying which outcomes should be plotted.
+#'   Defaults to all outcome options from \code{bhlm_object@outcome_options}.
+#' @param density.estimate Choose between \code{polspline::logspline} or \code{base::density} for density estimation method.
+#' @export
+
+bhlm.MAP <- function (bhlm_object, outcome_options = NULL, density.estimate = "logspline") {
+
+  if (class(bhlm_object) != "bhlm_object") {
+    stop(paste("Not bhlm_object. Found ", class(bhlm_object), ".", sep = ""), call. = FALSE)
+  }
+
+  if (is.null(outcome_options)) {
+    outcome_options <- bhlm_object@outcome_options
+  }
+
+  data <- bhlm_object@jags_samples$BUGSoutput$sims.list
+
+  table <- plyr::ldply(1:length(outcome_options), function(p) {
+
+    data.frame('Outcome' = outcome_options[p],
+               "MAP" = density(data[[outcome_options[p]]])$x[which(density(data[[outcome_options[p]]])$y==max(density(data[[outcome_options[p]]])$y))])
+
+  })
+
+  if (density.estimate == "logspline") {
+
+    table <- plyr::ldply(outcome_options, function(o) {
+
+      log.est <- logspline(data[o])
+
+      u1 <- qlogspline(0.01, log.est)
+      u2 <- qlogspline(0.99, log.est)
+      u3 <- 1.1 * u1 - 0.1 * u2
+      u4 <- 1.1 * u2 - 0.1 * u1
+
+      d <- data.frame(x = (0:(1000 - 1))/(1000 - 1) * (u4 - u3) + u3) %>%
+        mutate(y = dlogspline(x, log.est))
+
+      return(data.frame('Outcome' = o,
+                        'MAP' = d$x[which.max(d$y)]))
+      })
+
+    } else if (density.estimate == "density") {
+
+    table <- plyr::ldply(1:length(outcome_options), function(o) {
+
+      data.frame('Outcome' = outcome_options[o],
+                 "MAP" = density(data[[outcome_options[o]]])$x[which(density(data[[outcome_options[o]]])$y==max(density(data[[outcome_options[o]]])$y))]) %>%
+        as_tibble()
+      })
+    } else {
+      stop("incorrect density estimation method", call. = FALSE)
+    }
+
+  return(table)
 
 }
 
