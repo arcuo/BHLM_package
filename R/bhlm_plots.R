@@ -37,14 +37,18 @@ bhlm.traceplot <- function(bhlm_object, outcome_options = NULL, return_plots = F
                     bugs_output$n.thin)
 
   if (length(iterations) < (length(bugs_output$sims.list$deviance)/bugs_output$n.chains)) {
-    warning("Added iteration n.burnin.", call. = FALSE)
+    warning(paste("Mismatch between amount of iterations and samples (caused by thin and JAGS setting).\n",
+                  "Added iteration to the start (n.burnin)."), call. = FALSE)
     iterations <- c(bugs_output$n.burnin, iterations)
   }
 
+
+
   outcome_sims <-
-    as.data.frame(bugs_output$sims.matrix[,outcome_options]) %>%
+    as.data.frame(bugs_output$sims.list[outcome_options]) %>%
     cbind(iterations) %>%
     group(., bugs_output$n.chains, col_name = "chains")
+
 
   plots <- lapply(outcome_options, plot.outcome.trace,
                   chains = bugs_output$n.chains,
@@ -115,7 +119,7 @@ bhlm.SDplots <- function(bhlm_object,
 
   # Data ----------------------------------------------------------------------
 
-  postprior_data <- as.data.frame(bugs_output$sims.matrix[,outcome_options]) %>%
+  postprior_data <- as.data.frame(bugs_output$sims.list[outcome_options]) %>%
     gather("outcome", "sim", factor_key = TRUE) %>%
     mutate("postprior" = as.factor("Posterior"))
 
@@ -123,12 +127,13 @@ bhlm.SDplots <- function(bhlm_object,
 
   if (is.null(outcome_priors_data)) {
     if (bhlm_object@outcome_priors_c[1] == "NULL") {
-      for(i in 1:length(outcome_options)) {
+      for(o in outcome_options) {
         postprior_data <- rbind(postprior_data,
-                                sample.prior.dist.m(bhlm_object@outcome_priors_m[i,], iter))
+                                sample.prior.dist.m(b@outcome_priors_m[b@outcome_priors_m[,1] == o,], iter))
       }
     } else {
-      for(i in 1:length(outcome_options)) {
+      for(o in outcome_options) {
+        i = match(TRUE, grepl(o, bhlm_object@outcome_priors_c))
         postprior_data <- rbind(postprior_data,
                                 sample.prior.dist.c(bhlm_object@outcome_priors_c[i], iter))
       }
