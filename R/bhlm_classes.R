@@ -28,6 +28,8 @@ setClass(Class="bhlm_object",
 
 summary.bhlm_object <- function(object, ...) {
 
+  #Map, prob below null hyp, rhat, n.eff, bf01/10
+
   message("No custom summary function yet... default for now.")
   summary.default(object)
 
