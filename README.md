@@ -1,10 +1,12 @@
 [![forthebadge](https://forthebadge.com/images/badges/for-you.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/gluten-free.svg)](https://forthebadge.com)
 
-Bachelor project 2018 by Benjamin Zachariae.
+Bachelor project 2018 prototype by Benjamin Zachariae.
 
 Bayesian Meta Analysis using a heirarchical linear model with package. 
 
 Includes methods for plotting and preprocessing data. Documentation included with the package.
+
+The package is still under development!
 
 See [article](Article/Zachariae%20B%20-%20Bayesian%20Hierarchical%20Latent%20Mixture%20model%20for%20meta-analysis.pdf) for a demonstration of the package.
 
