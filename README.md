@@ -1,3 +1,5 @@
+[![forthebadge](https://forthebadge.com/images/badges/for-you.svg)](https://forthebadge.com) [![forthebadge](https://forthebadge.com/images/badges/gluten-free.svg)](https://forthebadge.com)
+
 Bachelor project 2018 by Benjamin Zachariae.
 
 Bayesian Meta Analysis using a heirarchical linear model with package. 
